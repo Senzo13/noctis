@@ -1,0 +1,11 @@
+# Sorties des scripts de contrôle visuel
+tools/_shots/
+tools/_chunks/
+tools/_frames/
+tools/_sheet_*.png
+tools/_*.py
+tools/_*.png
+
+# Systèmes
+.DS_Store
+Thumbs.db

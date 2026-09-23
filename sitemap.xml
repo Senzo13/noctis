@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://noctis.fr/</loc><changefreq>monthly</priority>1.0</url>
+  <url><loc>https://noctis.fr/realisations.html</loc><changefreq>monthly</priority>0.8</url>
+  <url><loc>https://noctis.fr/stock.html</loc><changefreq>weekly</priority>0.8</url>
+  <url><loc>https://noctis.fr/contact.html</loc><changefreq>yearly</priority>0.6</url>
+  <url><loc>https://noctis.fr/cookies.html</loc><changefreq>yearly</priority>0.3</url>
+  <url><loc>https://noctis.fr/confidentialite.html</loc><changefreq>yearly</priority>0.3</url>
+  <url><loc>https://noctis.fr/conditions.html</loc><changefreq>yearly</priority>0.3</url>
+</urlset>
