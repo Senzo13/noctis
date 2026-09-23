@@ -44,8 +44,21 @@
   /* --- Chargement ------------------------------------------------------- */
 
   function hideLoader() {
-    document.body.classList.add("is-loaded");
-    document.dispatchEvent(new CustomEvent("noctis:reveal"));
+    if (document.body.classList.contains("is-loaded")) return;
+    var reveal = function () {
+      document.body.classList.add("is-loaded");
+      document.dispatchEvent(new CustomEvent("noctis:reveal"));
+    };
+    // « dip to black » : la vidéo d'intro (et son titre) s'éteignent, puis
+    // le noir se lève sur le hero, pour une transition continue
+    if (introVideo && !reduceMotion && window.gsap) {
+      var introLayer = document.querySelector(".intro");
+      window.gsap.timeline({ onComplete: reveal })
+        .to([introVideo, introLayer], { opacity: 0, duration: 0.38, ease: "power2.in" }, 0)
+        .to({}, { duration: 0.12 });
+      return;
+    }
+    reveal();
   }
 
   document.querySelectorAll("[data-year]").forEach(function (el) {
@@ -207,6 +220,27 @@
       end: "top 32%",
       scrub: 0.5,
       onUpdate: function (self) { open(self.progress); }
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Parallaxe à la souris : la scène bouge un peu avec le curseur, comme  */
+  /* une caméra de jeu (léger, désactivé en mouvement réduit).             */
+  /* ------------------------------------------------------------------ */
+
+  function initMouseParallax(target, strength) {
+    if (!target || reduceMotion || !hasGsap) return;
+    var qx = window.gsap.quickTo(target, "x", { duration: 0.9, ease: "power3.out" });
+    var qy = window.gsap.quickTo(target, "y", { duration: 0.9, ease: "power3.out" });
+    window.addEventListener("mousemove", function (event) {
+      var nx = (event.clientX / window.innerWidth) - 0.5;
+      var ny = (event.clientY / window.innerHeight) - 0.5;
+      qx(nx * strength);
+      qy(ny * strength);
+    }, { passive: true });
+    window.addEventListener("mouseout", function () {
+      qx(0);
+      qy(0);
     });
   }
 
@@ -888,6 +922,10 @@
   html.classList.add("gsap-ready");
   window.gsap.registerPlugin(window.ScrollTrigger);
   var gsap = window.gsap;
+
+  // Parallaxe caméra à la souris sur la scène du hero et l'intro
+  initMouseParallax(document.querySelector(".hero__media"), 24);
+  initMouseParallax(document.querySelector(".loader__video"), 14);
 
   /* Titre de l'intro : les mots arrivent un à un « de loin » (flou + échelle),
      pendant que la vidéo d'intro se joue. */

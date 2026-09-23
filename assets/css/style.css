@@ -1983,6 +1983,18 @@ html.gsap-ready [data-anim="stagger"] > * {
   height: 100%;
   object-fit: cover;
   background: var(--black);
+  /* étalonnage pour rester dans l'ambiance sombre du hero (vidéo 1) */
+  filter: saturate(0.85) contrast(1.08) brightness(0.9);
+  transform: scale(1.05);
+}
+
+.loader::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(120% 120% at 50% 45%, rgba(10, 10, 10, 0) 46%, rgba(8, 8, 8, 0.58) 100%);
+  pointer-events: none;
 }
 
 .intro {
