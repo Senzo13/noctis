@@ -45,20 +45,10 @@
 
   function hideLoader() {
     if (document.body.classList.contains("is-loaded")) return;
-    var reveal = function () {
-      document.body.classList.add("is-loaded");
-      document.dispatchEvent(new CustomEvent("noctis:reveal"));
-    };
-    // « dip to black » : la vidéo d'intro (et son titre) s'éteignent, puis
-    // le noir se lève sur le hero, pour une transition continue
-    if (introVideo && !reduceMotion && window.gsap) {
-      var introLayer = document.querySelector(".intro");
-      window.gsap.timeline({ onComplete: reveal })
-        .to([introVideo, introLayer], { opacity: 0, duration: 0.38, ease: "power2.in" }, 0)
-        .to({}, { duration: 0.12 });
-      return;
-    }
-    reveal();
+    // crossfade direct : le loader (vidéo + texte) fond vers le hero, sans
+    // passage par le noir pour ne pas casser l'immersion
+    document.body.classList.add("is-loaded");
+    document.dispatchEvent(new CustomEvent("noctis:reveal"));
   }
 
   document.querySelectorAll("[data-year]").forEach(function (el) {
@@ -466,6 +456,7 @@
     var cues = Array.prototype.slice.call(frame.querySelectorAll(".reveal__cue"));
     var scrim = frame.querySelector("[data-reveal-scrim]");
     var finale = frame.querySelector("[data-reveal-finale]");
+    var introOverlay = document.querySelector("[data-intro]");
     if (!sticky || !frame) return;
 
     // Les images de la vidéo 2 sont dessinées dans le carré : elles avancent
@@ -575,6 +566,15 @@
       // grandit jusqu'à couvrir tout l'écran
       var seen = smooth(ramp(value, SQUARE_IN, SQUARE_SEEN));
       var open = smooth(ramp(value, OPEN_START, OPEN_END));
+      // la phrase manifeste (venue de l'intro) s'efface quand le carré s'ouvre
+      if (introOverlay) {
+        var introFade = smooth(ramp(value, OPEN_START - 0.06, OPEN_START + 0.2));
+        var introOpacity = (1 - introFade).toFixed(3);
+        if (introOverlay._op !== introOpacity) {
+          introOverlay._op = introOpacity;
+          introOverlay.style.opacity = introOpacity;
+        }
+      }
       var small = Math.max(40, Math.min(size.w, size.h) * 0.08);
       var side = small + (Math.max(size.w, size.h) - small) * open;
       var insetX = Math.max(0, (size.w - side) / 2);
@@ -956,8 +956,6 @@
      manifeste se révèle mot à mot au défilement. */
   var hero = document.querySelector("[data-hero]");
   if (hero) {
-    var statement = hero.querySelector(".hero__statement");
-    var words = splitWords(statement);
     var titleBlock = hero.querySelector(".hero__title-block");
     var title = hero.querySelector(".hero__title");
     var foot = hero.querySelector(".hero__foot");
@@ -979,7 +977,6 @@
       }
     }
 
-    gsap.set(words, { opacity: 0 });
     if (veil) gsap.set(veil, { opacity: 0 });
 
     // arrivée sur le site : elle se joue quand l'intro se termine, pour que
@@ -1009,9 +1006,7 @@
 
     heroTl
       .to([titleBlock, foot], { opacity: 0, y: -30, duration: 0.2, ease: "none" }, 0)
-      .to(veil, { opacity: 1, duration: 0.35, ease: "none" }, 0.7)
-      .to(words, { opacity: 1, duration: 0.45, stagger: 0.06, ease: "none" }, 1)
-      .to(statement, { duration: 0.1 }, 1.85);
+      .to(veil, { opacity: 1, duration: 0.35, ease: "none" }, 0.7);
 
     if (media) {
       // la vidéo apporte son propre mouvement, l'échelle l'amplifie

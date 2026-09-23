@@ -830,9 +830,10 @@ blockquote {
    manifeste, sans modifier sa position (elle est hors du flux) */
 .hero__statement-sub {
   position: absolute;
-  top: calc(100% + clamp(0.8rem, 2vh, 1.4rem));
+  top: 50%;
   left: 0;
   right: 0;
+  transform: translateY(-50%);
   max-width: 46rem;
   margin-inline: auto;
   font-size: clamp(0.9rem, 1.05vw, 1.08rem);
@@ -1972,7 +1973,7 @@ html.gsap-ready [data-anim="stagger"] > * {
   display: grid;
   place-items: center;
   background: var(--black);
-  transition: opacity 0.55s var(--ease), visibility 0.55s, transform 0.55s var(--ease);
+  transition: none;
 }
 
 .loader__video {
@@ -1998,13 +1999,17 @@ html.gsap-ready [data-anim="stagger"] > * {
 }
 
 .intro {
-  position: relative;
-  z-index: 2;
+  position: fixed;
+  inset: 0;
+  z-index: 130;
   display: grid;
+  place-items: center;
+  align-content: center;
   gap: 1.25rem;
   justify-items: center;
   text-align: center;
   padding-inline: 1.5rem;
+  pointer-events: none;
 }
 
 .intro__eyebrow {
@@ -2016,13 +2021,14 @@ html.gsap-ready [data-anim="stagger"] > * {
 }
 
 .intro__headline {
-  max-width: 24ch;
+  max-width: 62rem;
   margin: 0;
   font-family: var(--font-heading);
-  font-size: clamp(2rem, 5vw, 4.2rem);
-  line-height: 1.08;
+  font-size: clamp(1.8rem, 4.6vw, 4.6rem);
+  line-height: 1.16;
   letter-spacing: -0.02em;
   color: var(--white);
+  text-shadow: 0 0 60px rgba(12, 12, 12, 0.75);
   text-wrap: balance;
 }
 
@@ -2088,9 +2094,7 @@ html.gsap-ready [data-anim="stagger"] > * {
 }
 
 body.is-loaded .loader {
-  opacity: 0;
-  visibility: hidden;
-  transform: scale(1.05);
+  display: none;
 }
 
 /* --- 20. Responsive ------------------------------------------------------ */

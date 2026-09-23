@@ -16,13 +16,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# (source, dossier de sortie, largeur cible, qualité WebP, pas)
+# (source, dossier de sortie, largeur cible, qualité WebP, pas, filtre optionnel)
 # `pas` = on garde une image sur deux : 240 images à 30 fps → 120 images
 # (15 images par seconde, largement suffisant pour un scrub au défilement).
 SEQUENCES = [
-    ("assets/video/hero.mp4", "assets/frames/hero", 1280, 68, 2),
-    ("assets/video/hero-mobile.mp4", "assets/frames/hero-mobile", 720, 68, 2),
-    ("assets/video/atelier.mp4", "assets/frames/atelier", 1280, 58, 2),
+    ("assets/video/hero.mp4", "assets/frames/hero", 1920, 80, 2, None),
+    ("assets/video/hero.mp4", "assets/frames/hero-mobile", 720, 80, 2, "crop=ih*9/16:ih"),
+    ("assets/video/atelier.mp4", "assets/frames/atelier", 1280, 58, 2, None),
 ]
 
 
@@ -31,7 +31,7 @@ def main() -> int:
         print("ffmpeg est introuvable dans le PATH.", file=sys.stderr)
         return 1
 
-    for source, cible, largeur, qualite, pas in SEQUENCES:
+    for source, cible, largeur, qualite, pas, extra in SEQUENCES:
         entree = ROOT / source
         sortie = ROOT / cible
         if not entree.exists():
@@ -40,13 +40,17 @@ def main() -> int:
         sortie.mkdir(parents=True, exist_ok=True)
         for ancienne in sortie.glob("*.webp"):
             ancienne.unlink()
+        filtre = f"select=not(mod(n\\,{pas}))"
+        if extra:
+            filtre = f"{filtre},{extra}"
+        filtre = f"{filtre},scale={largeur}:-2"
         subprocess.run(
             [
                 "ffmpeg",
                 "-v", "error",
                 "-y",
                 "-i", str(entree),
-                "-vf", f"select=not(mod(n\\,{pas})),scale={largeur}:-2",
+                "-vf", filtre,
                 "-vsync", "0",
                 "-c:v", "libwebp",
                 "-quality", str(qualite),
