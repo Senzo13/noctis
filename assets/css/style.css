@@ -146,8 +146,8 @@ blockquote {
   font-family: var(--font-heading);
   font-weight: 400;
   font-synthesis: none;
-  letter-spacing: -0.02em;
-  line-height: 1.08;
+  letter-spacing: -0.025em;
+  line-height: 1.07;
   text-wrap: balance;
 }
 
@@ -161,6 +161,136 @@ blockquote {
 
 .h-card {
   font-size: clamp(1.5rem, 2.4vw, 2.6rem);
+}
+
+/* --- 2 bis. Le fantôme : la signature de tout le texte --------------------
+   Rien, sur ce site, ne s'écrit en aplat. Trois paliers, une seule signature :
+
+     --ghost-1  grands textes : écho net + diffusion + halo large ;
+     --ghost-2  labels, petites capitales, serif courant, boutons, navigation ;
+     --ghost-3  texte courant : un simple halo, pour que tout respire pareil.
+
+   Les paliers sont des jetons : la bande claire les reprend à l'encre noire. */
+
+:root {
+  --ghost-echo-1: rgba(242, 241, 237, 0.34);
+  --ghost-1:
+    -0.016em -0.01em 0.03em var(--ghost-echo-1),
+    0.012em 0.012em 0.05em rgba(242, 241, 237, 0.15),
+    0 0 1.4em rgba(242, 241, 237, 0.09);
+  --ghost-2:
+    -0.013em -0.007em 0.024em rgba(242, 241, 237, 0.27),
+    0.009em 0.009em 0.04em rgba(242, 241, 237, 0.12),
+    0 0 1em rgba(242, 241, 237, 0.08);
+  --ghost-3: 0 0 1.1em rgba(242, 241, 237, 0.055);
+}
+
+/* à la source : le texte courant hérite d'un halo discret, donc aucun texte
+   n'est oublié, même celui qui n'est nommé nulle part. */
+body {
+  text-shadow: var(--ghost-3);
+}
+
+/* Palier 1 — les grands textes : titres, chiffres, citations, grands noms. */
+.h-display,
+.h-section,
+.h-card,
+.hero__statement,
+.menu__list a,
+.reveal__finale-mark,
+.figure-stat strong,
+.material__index,
+.manifesto__lead,
+.contact__detail a,
+.contact__detail p,
+.craft__step h3,
+.material h3,
+.step__body h3,
+.service__body h3,
+.rail__item figcaption strong,
+.card__head h3,
+.page-hero h1,
+.prose h2,
+.prose h3 {
+  /* le grand texte n'est jamais un blanc plein : il garde une légère
+     transparence, comme une encre qui hésite sur le noir */
+  color: rgba(242, 241, 237, 0.94);
+  text-shadow: var(--ghost-1);
+}
+
+/* Palier 2 — tout ce qui se lit en petites capitales, en serif courant ou
+   dans un bouton : les repères, les libellés, la navigation, les formulaires. */
+.label,
+.label--gold,
+.cta__eyebrow,
+.hero__beat-eyebrow,
+.card__tag,
+.breadcrumb,
+.breadcrumb a,
+.logo-word,
+.header__nav-label,
+.menu__index,
+.menu__foot-links a,
+.panel__index,
+.step__index,
+.service__index,
+.craft__step-num,
+.figure-stat > span,
+.rail__item figcaption,
+.rail__item figcaption span,
+.reveal__cue,
+.footer__col h4,
+.footer__col a,
+.footer__bottom,
+.field label,
+.consent,
+.form__note,
+.card__specs,
+.card__tag,
+.btn,
+.btn-link,
+.hero__sub,
+.lead,
+.gallery figcaption {
+  text-shadow: var(--ghost-2);
+}
+
+/* Les bandeaux défilants : mots creux (contour seul), donc pas d'écho décalé
+   — sur un contour, il se lit comme un biseau. Un halo large et très doux
+   suffit : le mot reste un fantôme, sans jamais devenir un relief. */
+.marquee__track > span {
+  text-shadow: 0 0 1.4em rgba(242, 241, 237, 0.06);
+}
+
+.ordinary--clair .ordinary__marquee .marquee__track > span {
+  text-shadow: 0 0 1.4em rgba(12, 12, 12, 0.05);
+}
+
+/* Sur les fonds photographiques, le fantôme s'assombrit : le halo blanc y
+   devient un voile. On garde une ombre portée pour la lisibilité. */
+.hero__title,
+.cta .h-display,
+.reveal__finale-mark {
+  text-shadow:
+    0 1px 30px rgba(12, 12, 12, 0.72),
+    -0.012em -0.008em 0.02em rgba(242, 241, 237, 0.2),
+    0 0 1.4em rgba(242, 241, 237, 0.07);
+}
+
+/* Bande claire : la même signature, à l'encre noire. */
+.ordinary--clair,
+.page-hero--clair {
+  --ghost-echo-1: rgba(12, 12, 12, 0.3);
+  --ghost-1:
+    -0.016em -0.01em 0.03em rgba(12, 12, 12, 0.3),
+    0.012em 0.012em 0.05em rgba(12, 12, 12, 0.16),
+    0 0 1.2em rgba(12, 12, 12, 0.09);
+  --ghost-2:
+    -0.013em -0.007em 0.024em rgba(12, 12, 12, 0.24),
+    0 0 0.9em rgba(12, 12, 12, 0.08);
+  --ghost-3: 0 0 1.1em rgba(12, 12, 12, 0.06);
+  /* le texte courant de la bande claire reprend le halo à l'encre */
+  text-shadow: var(--ghost-3);
 }
 
 .lead {
@@ -324,14 +454,45 @@ blockquote {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(12, 12, 12, 0.86), rgba(12, 12, 12, 0));
+  background: linear-gradient(
+    to bottom,
+    rgba(12, 12, 12, 0.96) 0%,
+    rgba(12, 12, 12, 0.82) 52%,
+    rgba(12, 12, 12, 0.34) 78%,
+    rgba(12, 12, 12, 0) 100%
+  );
   opacity: 0;
   transition: opacity 0.5s var(--ease);
   pointer-events: none;
 }
 
 .header.is-scrolled::before {
+  /* la page peut faire défiler un titre sous l'en-tête : le voile garde le
+     logo et le menu lisibles dessus, sans jamais masquer le titre entier */
+  backdrop-filter: blur(7px);
   opacity: 1;
+}
+
+/* Au-dessus de la bande claire, l'en-tête passe en noir (sinon il disparaît) */
+.header.is-on-light::before {
+  background: linear-gradient(to bottom, rgba(242, 241, 237, 0.94), rgba(242, 241, 237, 0));
+}
+
+.header.is-on-light .header__socials a,
+.header.is-on-light .header__logo {
+  color: var(--black);
+}
+
+.header.is-on-light .header__nav-label {
+  color: rgba(12, 12, 12, 0.62);
+}
+
+.header.is-on-light .nav-trigger:hover .header__nav-label {
+  color: var(--black);
+}
+
+.header.is-on-light .burger i {
+  background: var(--black);
 }
 
 .header.is-hidden {
@@ -926,31 +1087,6 @@ html.gsap-ready .hero__beat {
   line-height: 1.6;
   color: rgba(242, 241, 237, 0.82);
   text-wrap: balance;
-}
-
-.hero__scroll {
-  display: grid;
-  justify-items: center;
-  gap: 0.6rem;
-  font-size: 0.65rem;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--muted-2);
-}
-
-.hero__scroll span {
-  display: block;
-  width: 1px;
-  height: 3rem;
-  background: linear-gradient(to bottom, rgba(242, 241, 237, 0.5), rgba(242, 241, 237, 0));
-  animation: scroll-hint 2.6s var(--ease) infinite;
-  transform-origin: top;
-}
-
-@keyframes scroll-hint {
-  0% { transform: scaleY(0.15); opacity: 0.3; }
-  45% { transform: scaleY(1); opacity: 1; }
-  100% { transform: scaleY(0.15); opacity: 0.3; }
 }
 
 /* --- 7. Bandeaux défilants ------------------------------------------------ */
@@ -1663,6 +1799,46 @@ html.gsap-ready .hero__beat {
   color: var(--muted-2);
 }
 
+/* La signature NevoLabs : le mot « POWERED BY » reste un repère discret,
+   le logo se tient à côté, en blanc, et s'allume au survol. */
+.footer__credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--muted-2);
+  transition: color var(--dur) var(--ease);
+}
+
+.footer__credit > span {
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+
+.footer__credit img {
+  width: clamp(6.5rem, 8vw, 8rem);
+  height: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.8;
+  transition: opacity var(--dur) var(--ease);
+}
+
+.footer__credit:hover,
+.footer__credit:focus-visible {
+  color: var(--white);
+}
+
+.footer__credit:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 6px;
+}
+
+.footer__credit:hover img,
+.footer__credit:focus-visible img {
+  opacity: 1;
+}
+
 .footer__socials {
   display: flex;
   gap: 1rem;
@@ -1951,47 +2127,6 @@ html.gsap-ready .hero__beat {
   color: var(--white);
 }
 
-/* --- 18. Bandeau cookies ------------------------------------------------- */
-
-.cookie-bar {
-  position: fixed;
-  left: var(--pad);
-  right: var(--pad);
-  bottom: 1.5rem;
-  z-index: 95;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem 2rem;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem 1.5rem;
-  background: rgba(22, 22, 22, 0.94);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(14px);
-  transform: translateY(140%);
-  transition: transform 0.8s var(--ease-out);
-}
-
-.cookie-bar.is-visible {
-  transform: translateY(0);
-}
-
-.cookie-bar p {
-  font-size: 0.78rem;
-  color: var(--muted);
-  max-width: 52rem;
-}
-
-.cookie-bar__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.cookie-bar .btn {
-  padding: 0.8rem 1.5rem;
-}
-
 /* --- 19. Animations d'entrée --------------------------------------------- */
 
 html.gsap-ready [data-anim="fade-up"] {
@@ -2064,9 +2199,715 @@ body.is-loaded .loader {
   display: none;
 }
 
+/* --- 19 bis. Progression de lecture --------------------------------------- */
+
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 95;
+  height: 2px;
+  background: rgba(242, 241, 237, 0.07);
+  pointer-events: none;
+}
+
+.scroll-progress i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(to right, var(--gold), var(--red-bright));
+  transform-origin: left center;
+}
+
+/* --- 19 ter. L'atelier : les trois gestes, en séquence --------------------
+   Trois gestes (film, polissage, contrôle) tenus dans un même plan de travail.
+   Au défilement, la colonne des gestes s'allume geste par geste et le plan de
+   travail change de cadrage ; la lumière rasante balaie la pièce à chaque
+   passage, comme au contrôle final. Sans JavaScript ou en mouvement réduit :
+   la liste et les trois plans s'empilent, simplement, dans l'ordre. */
+
+.craft {
+  position: relative;
+  padding: clamp(4.5rem, 11vh, 9rem) 0 clamp(4rem, 9vh, 7rem);
+  border-top: 1px solid var(--line-soft);
+}
+
+.craft__head {
+  display: grid;
+  gap: 1.4rem;
+  margin-bottom: clamp(2.5rem, 6vh, 4.5rem);
+}
+
+.craft__head .lead {
+  max-width: 44rem;
+}
+
+.craft__stage {
+  display: grid;
+  gap: clamp(2rem, 5vh, 3rem);
+  padding-inline: var(--pad);
+}
+
+.craft__sticky {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-content: center;
+}
+
+/* La liste des gestes : la ligne au-dessus de chaque geste est la même que
+   celle des sections ; elle s'éclaire quand le geste passe devant la caméra. */
+.craft__steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.craft__step {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 1.1rem;
+  row-gap: 0.35rem;
+  padding: 1.1rem 0 1.25rem;
+  border-top: 1px solid var(--line-soft);
+  color: var(--muted-2);
+  transition: color 0.7s var(--ease), border-color 0.7s var(--ease);
+}
+
+.craft__step:last-child {
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.craft__step-num {
+  grid-row: 1 / span 2;
+  font-size: 0.64rem;
+  letter-spacing: 0.3em;
+  color: currentColor;
+  padding-top: 0.55rem;
+  transition: color 0.7s var(--ease);
+}
+
+.craft__step h3 {
+  font-family: var(--font-heading);
+  font-size: clamp(1.35rem, 1.9vw, 2rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: currentColor;
+  transition: color 0.7s var(--ease);
+}
+
+.craft__step p {
+  font-size: clamp(0.9rem, 0.95vw, 1rem);
+  line-height: 1.6;
+  max-width: 26rem;
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+}
+
+.craft__step.is-active {
+  color: var(--white);
+  border-color: var(--line);
+}
+
+.craft__step.is-active h3 {
+  color: var(--white);
+}
+
+.craft__step.is-active .craft__step-num {
+  color: var(--gold);
+}
+
+.craft__step.is-active p {
+  color: var(--muted);
+  opacity: 1;
+  transform: none;
+}
+
+/* Le plan de travail : trois cadrages dans la même fenêtre. */
+.craft__deck {
+  position: relative;
+  display: grid;
+  gap: clamp(0.7rem, 1.2vw, 1.1rem);
+}
+
+.craft__frame {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--black-2);
+}
+
+.craft__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.78) saturate(0.94);
+  transition: filter 1s var(--ease), transform 1.5s var(--ease-out);
+}
+
+/* La lumière rasante : elle balaie le plan quand il devient le plan actif. */
+.craft__frame::after {
+  content: "";
+  position: absolute;
+  inset: -25% -45%;
+  z-index: 1;
+  background: linear-gradient(
+    104deg,
+    rgba(242, 241, 237, 0) 36%,
+    rgba(242, 241, 237, 0.14) 46%,
+    rgba(197, 160, 100, 0.16) 52%,
+    rgba(242, 241, 237, 0) 64%
+  );
+  transform: translate3d(-70%, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.craft__frame.is-active::after {
+  animation: craft-sheen 1.6s var(--ease-out) 0.12s 1 both;
+}
+
+@keyframes craft-sheen {
+  0% { transform: translate3d(-70%, 0, 0); opacity: 0; }
+  22% { opacity: 1; }
+  100% { transform: translate3d(70%, 0, 0); opacity: 0; }
+}
+
+/* Mode séquence : la colonne des gestes reste à l'écran pendant que le plan
+   de travail change. Réservé aux écrans larges et aux navigateurs animés. */
+@media (min-width: 1024px) {
+  html.gsap-ready .craft {
+    padding-bottom: 0;
+  }
+
+  /* En mode séquence, seul le geste en cours s'explique : les deux autres
+     restent lisibles en titre, sans leur phrase. */
+  html.gsap-ready .craft__step p {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+
+  html.gsap-ready .craft__step.is-active p {
+    opacity: 1;
+    transform: none;
+  }
+
+  html.gsap-ready .craft__stage {
+    /* bloc (et non grille) : sinon le plan de travail s'étire sur toute la
+       hauteur de la section et le sticky n'a plus rien à épingler */
+    display: block;
+    height: 250svh;
+    padding-inline: 0;
+  }
+
+  html.gsap-ready .craft__sticky {
+    position: sticky;
+    top: 0;
+    grid-template-columns: minmax(0, 4.3fr) minmax(0, 7.7fr);
+    align-items: center;
+    height: 100svh;
+    padding-inline: var(--pad);
+  }
+
+  html.gsap-ready .craft__deck {
+    /* le plan de travail prend la hauteur de l'écran : c'est le sujet */
+    aspect-ratio: auto;
+    height: min(72svh, 42rem);
+  }
+
+  html.gsap-ready .craft__frame {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+    opacity: 0;
+    transition: opacity 1.1s var(--ease);
+  }
+
+  html.gsap-ready .craft__frame.is-active {
+    opacity: 1;
+  }
+
+  html.gsap-ready .craft__frame.is-active img {
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
+  }
+
+  html.gsap-ready .craft__frame img {
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .craft__frame.is-active::after {
+    animation: none;
+  }
+}
+
+/* --- 19 quater. Matières : accordéon horizontal --------------------------- */
+
+.materials {
+  padding: clamp(4rem, 10vh, 8rem) 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.materials__head {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 62rem;
+  margin-bottom: clamp(2.5rem, 5vh, 4rem);
+}
+
+.materials__head .lead {
+  max-width: 46rem;
+}
+
+.materials__list {
+  display: flex;
+  gap: clamp(0.6rem, 1vw, 1rem);
+  padding: 0 var(--pad);
+  margin: 0;
+  list-style: none;
+}
+
+.material {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  aspect-ratio: 3 / 4.1;
+  overflow: hidden;
+  background: var(--black-2);
+  transition: flex-grow 0.9s var(--ease-out);
+}
+
+.material img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+  transition: opacity 0.7s var(--ease), transform 1.3s var(--ease-out);
+}
+
+.material::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to top, rgba(12, 12, 12, 0.94) 0%, rgba(12, 12, 12, 0.42) 46%, rgba(12, 12, 12, 0.06) 100%);
+}
+
+.material__index,
+.material h3,
+.material p {
+  position: absolute;
+  z-index: 2;
+}
+
+.material__index {
+  top: 1.25rem;
+  left: 1.4rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+}
+
+.material h3 {
+  left: 1.4rem;
+  right: 1.4rem;
+  bottom: 1.35rem;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(1.1rem, 1.7vw, 1.7rem);
+  font-weight: 400;
+  transition: bottom 0.7s var(--ease);
+}
+
+.material p {
+  left: 1.4rem;
+  right: 1.4rem;
+  bottom: 1.35rem;
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: rgba(242, 241, 237, 0.78);
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
+}
+
+/* au survol, la carte ouverte prend la place et la matière se révèle */
+.materials__list:hover .material {
+  flex-grow: 0.86;
+}
+
+.materials__list .material:hover,
+.materials__list .material:focus-within {
+  flex-grow: 2.7;
+}
+
+.material:hover img,
+.material:focus-within img {
+  opacity: 0.92;
+  transform: scale(1.04);
+}
+
+.material:hover h3,
+.material:focus-within h3 {
+  bottom: 6.6rem;
+}
+
+.material:hover p,
+.material:focus-within p {
+  opacity: 1;
+  transform: none;
+}
+
+/* --- 19 quinquies. Méthode : étapes face à l'introduction ----------------- */
+
+.process {
+  padding: clamp(4rem, 10vh, 9rem) 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.process__wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(2rem, 6vw, 7rem);
+  align-items: start;
+}
+
+.process__intro {
+  position: sticky;
+  top: clamp(6rem, 18vh, 11rem);
+  display: grid;
+  gap: 1.25rem;
+}
+
+.process__steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(1rem, 3vw, 3rem);
+  padding: clamp(1.6rem, 4vh, 2.8rem) 0;
+  border-top: 1px solid var(--line-soft);
+  /* sans JavaScript, aucune étape ne serait « activée » : on ne grise donc
+     les étapes que lorsque la chorégraphie est disponible */
+  opacity: 1;
+  transition: opacity 0.7s var(--ease);
+}
+
+html.gsap-ready .step {
+  opacity: 0.5;
+}
+
+.step:last-child {
+  border-bottom: 1px solid var(--line-soft);
+}
+
+html.gsap-ready .step.is-active {
+  opacity: 1;
+}
+
+.step__index {
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 2.8vw, 2.4rem);
+  line-height: 1;
+  color: rgba(242, 241, 237, 0.3);
+  transition: color 0.6s var(--ease);
+}
+
+html.gsap-ready .step.is-active .step__index {
+  color: var(--gold);
+}
+
+.step__body h3 {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-heading);
+  font-size: clamp(1.3rem, 2.2vw, 2rem);
+  font-weight: 400;
+}
+
+.step__body p {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--muted);
+}
+
+/* --- 19 sexies. L'atelier en chiffres ------------------------------------- */
+
+.figures {
+  padding: clamp(3rem, 8vh, 6rem) 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.figures__list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.figure-stat {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.figure-stat strong {
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 6vw, 4.4rem);
+  font-weight: 400;
+  line-height: 1;
+}
+
+.figure-stat > span {
+  font-size: 0.66rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+
+/* --- 19 septies. La bande claire -----------------------------------------
+   Une seule section claire du site : « L'ordinaire s'arrête ici ». La rupture
+   de l'ordinaire devient littérale — c'est le temps de respiration de la page. */
+
+.ordinary--clair {
+  background: var(--white);
+  color: var(--black);
+  border-top: 0;
+  /* le mot fantôme de la bande claire passe sous l'en-tête : on lui laisse
+     la hauteur de l'en-tête pour qu'il ne s'y accroche pas */
+  padding-top: clamp(7rem, 16vh, 12rem);
+}
+
+.ordinary--clair .h-section,
+.ordinary--clair .h-display {
+  color: var(--black);
+}
+
+.ordinary--clair .lead {
+  color: rgba(12, 12, 12, 0.72);
+}
+
+.ordinary--clair .ordinary__marquee {
+  opacity: 0.8;
+}
+
+.ordinary--clair .ordinary__marquee .marquee__track > span {
+  -webkit-text-stroke: 1.2px rgba(12, 12, 12, 0.48);
+}
+
+/* Sur la bande claire, le mot italique du bandeau doit passer à l'encre :
+   en gris clair il disparaissait sur le fond ivoire. */
+.ordinary--clair .ordinary__marquee .marquee__track > span i {
+  color: rgba(12, 12, 12, 0.42);
+}
+
+.ordinary--clair .ordinary__head {
+  margin-top: clamp(0.75rem, 2vh, 1.75rem);
+}
+
+.ordinary--clair .rail__item {
+  background: var(--black-2);
+}
+
+/* --- 19 octies. Micro-interactions sur les visuels ----------------------- */
+
+.rail__item img,
+.manifesto__media img,
+.panel__media img {
+  transition: transform 1.3s var(--ease-out), filter 0.8s var(--ease);
+}
+
+.rail__item:hover img {
+  transform: scale(1.04);
+  filter: brightness(1.06);
+}
+
+/* --- 19 nonies. Une composition par section ------------------------------
+   Le même volet image/texte répété d'un bout à l'autre fait un site qui se
+   lit comme un gabarit. Chaque section prend donc sa propre composition :
+   volet classique, volet inversé, bande pleine largeur, fiche. */
+
+/* Bande pleine largeur : le visuel occupe l'écran, le texte se pose dessus. */
+.band {
+  position: relative;
+  display: grid;
+  align-items: end;
+  min-height: min(86svh, 52rem);
+  overflow: hidden;
+  background: var(--black-2);
+  border-top: 1px solid var(--line-soft);
+}
+
+.band__media {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+}
+
+.band__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.9) contrast(1.05);
+  transform: scale(1.02);
+}
+
+.band::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(12, 12, 12, 0.95) 3%,
+    rgba(12, 12, 12, 0.62) 38%,
+    rgba(12, 12, 12, 0.16) 76%,
+    rgba(12, 12, 12, 0.08) 100%
+  );
+  pointer-events: none;
+}
+
+.band__copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 1.5rem;
+  justify-items: start;
+  padding-block: clamp(3.5rem, 10vh, 7rem);
+}
+
+.band__copy .h-section {
+  max-width: 24ch;
+}
+
+.band__copy .lead {
+  max-width: 38rem;
+  color: rgba(242, 241, 237, 0.78);
+}
+
+/* Volet inversé (intention) : le texte passe devant, le visuel respire en
+   portrait. */
+.panel:nth-child(2) .panel__grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.82fr);
+}
+
+.panel:nth-child(2) .panel__media {
+  order: 2;
+  aspect-ratio: 3 / 4;
+}
+
+.panel:nth-child(2) .panel__copy {
+  order: 1;
+}
+
+/* Fiche (cohérence) : la bande visuelle passe au-dessus, la copie se range
+   en deux colonnes, l'idée à gauche et sa définition à droite. */
+.panel:nth-child(3) .panel__grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1.75rem, 4vw, 3rem);
+}
+
+.panel:nth-child(3) .panel__media {
+  aspect-ratio: 21 / 9;
+}
+
+.panel:nth-child(3) .panel__copy {
+  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+  column-gap: clamp(1.5rem, 4vw, 4rem);
+  align-content: start;
+}
+
+.panel:nth-child(3) .panel__copy h3 {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+.panel:nth-child(3) .panel__copy p,
+.panel:nth-child(3) .panel__copy .btn-link {
+  grid-column: 2;
+}
+
+/* Stock : le volet s'inverse (visuel à droite) pour ne pas répéter le
+   manifeste juste au-dessus. */
+#stock .manifesto__grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.86fr);
+}
+
+#stock .manifesto__media {
+  order: 2;
+  aspect-ratio: 4 / 3;
+}
+
+#stock .manifesto__copy {
+  order: 1;
+}
+
+/* L'atelier en chiffres : des filets verticaux plutôt que quatre blocs
+   posés côte à côte. */
+.figure-stat {
+  padding-left: clamp(1rem, 2.2vw, 2rem);
+  border-left: 1px solid var(--line-soft);
+}
+
 /* --- 20. Responsive ------------------------------------------------------ */
 
 @media (max-width: 1100px) {
+  /* la méthode passe en un seul bloc */
+  .process__wrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* une colonne pour tous les volets, quelle que soit leur composition */
+  .panel:nth-child(2) .panel__grid,
+  .panel:nth-child(3) .panel__grid,
+  #stock .manifesto__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel:nth-child(2) .panel__media {
+    order: 0;
+    aspect-ratio: 4 / 3;
+  }
+
+  .panel:nth-child(2) .panel__copy {
+    order: 0;
+  }
+
+  .panel:nth-child(3) .panel__media {
+    aspect-ratio: 16 / 9;
+  }
+
+  .panel:nth-child(3) .panel__copy {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel:nth-child(3) .panel__copy h3 {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .panel:nth-child(3) .panel__copy p,
+  .panel:nth-child(3) .panel__copy .btn-link {
+    grid-column: 1;
+  }
+
+  #stock .manifesto__media,
+  #stock .manifesto__copy {
+    order: 0;
+  }
+
+  .process__intro {
+    position: static;
+  }
+
   .footer__top {
     grid-template-columns: 1fr 1fr;
     row-gap: 2.5rem;
@@ -2091,6 +2932,70 @@ body.is-loaded .loader {
 @media (max-width: 760px) {
   :root {
     --header-h: 4.5rem;
+  }
+
+  /* la bande garde sa respiration sans manger tout l'écran */
+  .band {
+    min-height: 68svh;
+  }
+
+  .band__copy {
+    gap: 1.15rem;
+    padding-block: 3rem 3.5rem;
+  }
+
+  .craft__step h3 {
+    font-size: 1.35rem;
+  }
+
+  /* la matière devient un rail horizontal */
+
+  .materials__list {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+  }
+
+  .materials__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .material {
+    flex: 0 0 74vw;
+    aspect-ratio: 3 / 4;
+    scroll-snap-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    padding: 3.5rem 1.4rem 1.35rem;
+  }
+
+  .material p {
+    position: relative;
+    inset: auto;
+    opacity: 1;
+    transform: none;
+  }
+
+  .material h3,
+  .material:hover h3,
+  .material:focus-within h3 {
+    position: relative;
+    inset: auto;
+  }
+
+  .materials__list .material,
+  .materials__list .material:hover,
+  .materials__list .material:focus-within {
+    flex-grow: 0;
+  }
+
+  .figures__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1.5rem;
   }
 
   .gallery__item--portrait {
@@ -2161,14 +3066,14 @@ body.is-loaded .loader {
     justify-content: flex-start;
   }
 
+  .footer__credit img {
+    width: 6.25rem;
+  }
+
   .menu__list a {
     font-size: clamp(1.9rem, 9vw, 3rem);
   }
 
-  .cookie-bar {
-    bottom: 1rem;
-    padding: 1rem 1.1rem;
-  }
 
   .panel {
     position: relative;
@@ -2249,5 +3154,9 @@ body.is-loaded .loader {
   /* la vidéo 0 ne se joue pas : le hero se contente de son image fixe */
   .hero__intro-frames {
     display: none;
+  }
+
+  .panel {
+    position: relative;
   }
 }

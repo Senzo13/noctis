@@ -39,17 +39,18 @@ index.html              Accueil (intro vidéo 0 + rush vidéo 1 + carré vidéo 
 realisations.html       Grille des réalisations
 stock.html              Véhicules disponibles
 contact.html            Formulaire de contact
-cookies.html            Politique cookies
 confidentialite.html    Politique de confidentialité (RGPD)
 conditions.html         Conditions générales
 robots.txt / sitemap.xml
 assets/css/style.css    Design system complet (thème, composants, responsive)
-assets/js/main.js       Animations, menu, vidéos, formulaire, cookies
+assets/js/main.js       Animations, menu, vidéos, formulaire
 assets/img/*            Visuels dérivés de la maquette
 assets/video/*          Vidéos sources (intro + hero + atelier)
 assets/frames/*         Séquences d'images jouées au canvas (intro, hero, atelier)
 assets/source/*         Image source fournie par le client
-tools/*                 Scripts utilitaires (dérivation d'images, capture QA)
+tools/build_frames.py   Vidéos sources → séquences d'images (vidéos 0, 1 et 2)
+tools/build_images.py   Originaux générés → WebP responsive des sections
+tools/*                 Autres scripts utilitaires (pages, captures QA)
 ```
 
 ## 4. Le rush du hero : 2.5D intégré (et vidéo en option)
@@ -175,6 +176,51 @@ affichage du fondu, soit une bonne dizaine d'images perdues) :
   peinte en permanence (opacité 0 pendant le rush) et ses images se chargent dès le milieu
   du rush, donc elle est déjà prête quand le fondu commence.
 
+## 4 ter. Le rythme de la page (sections et interactions)
+
+La page alterne tension et respiration, pour ne pas être une succession de blocs
+identiques :
+
+| Section | Registre | Interaction |
+|---|---|---|
+| Hero (vidéos 0 → 1 → 2) | plein cadre, tension maximale | défilement |
+| **Trois gestes** (`.craft`) | séquence épinglée : la liste des gestes s'allume, le plan de travail change de cadrage | lumière rasante à chaque changement de geste |
+| Approche | preuves, rythme régulier | bandeau de marques défilant |
+| Panneaux identité / intention / cohérence | trois compositions différentes (volet, volet inversé, fiche) | empilement collant, la carte précédente recule |
+| Manifeste | pause typographique | illumination mot à mot |
+| **Matières** (`.materials`) | cinq macros, accordéon horizontal | au survol, la carte s'élargit et révèle son texte |
+| **L'ordinaire s'arrête ici** (`.ordinary--clair`) | **seule bande claire du site** : la rupture avec l'ordinaire devient littérale | bandeau défilant, rail horizontal épinglé |
+| Services | dense, listé | apparitions en cascade |
+| **Méthode** (`.process`) | quatre étapes face à une introduction collante | l'étape au centre de l'écran s'allume en doré |
+| **Créations précédentes** (`.band`) | bande pleine largeur : le visuel occupe l'écran, le texte se pose dessus | zoom lent du visuel |
+| Stock | preuve, volet inversé (visuel à droite) | ouverture « carré » |
+| **L'atelier en chiffres** (`.figures`) | respiration avant le CTA | les nombres montent à l'entrée dans la section |
+| CTA | résolution | — |
+
+Trois détails tiennent l'ensemble :
+
+- **le fantôme typographique** : *tout* le texte du site porte la même signature,
+  en trois paliers (jetons `--ghost-1`, `--ghost-2`, `--ghost-3` dans
+  `style.css`). Palier 1 pour les grands textes (titres, chiffres, noms, citations) :
+  copie légère de la lettre, décalée et diffuse, plus un halo large. Palier 2 pour
+  les repères en petites capitales, le serif courant, les boutons, la navigation et
+  les formulaires. Palier 3 : un simple halo, posé à la source sur `body`, pour que
+  le texte courant respire comme le reste — aucun texte n'est oublié, même celui
+  qu'aucune règle ne nomme. Sur la bande claire, les trois paliers passent à
+  l'encre noire. Les mots creux des bandeaux (contour seul) ne reçoivent qu'un halo
+  très doux : un écho décalé s'y lirait comme un biseau. À l'apparition, chaque
+  grand titre sort du flou (GSAP) puis garde son halo ;
+- **l'en-tête passe en noir** (`.header.is-on-light`, posé par un `IntersectionObserver`)
+  tant que la bande claire est sous lui — sinon il devient illisible ;
+- **une barre de progression** de lecture, discrète, en haut de page (`.scroll-progress`) ;
+- les visuels réagissent au survol (zoom + éclat) et les cartes Matières se déploient.
+
+Faute de JavaScript (ou en mouvement réduit), la séquence « Trois gestes » se
+replie en pile : la liste, puis les trois plans, dans l'ordre — rien n'est perdu.
+
+> Les quatre nombres de « L'atelier en chiffres » sont des **placeholders de mise en
+> page** : remplacez-les par vos chiffres réels avant la mise en ligne (voir §6).
+
 ### Regénérer les séquences d'images
 
 ```powershell
@@ -283,27 +329,32 @@ ffmpeg -i source.mp4 -an -vf "crop=ih*9/16:ih,scale=1080:1920" -c:v libx264 \
   -movflags +faststart assets/video/hero-mobile.mp4
 ```
 
-## 5. Remplacer les visuels
+## 5. Images du site et crédit NevoLabs
 
-Tous les visuels actuels sont **dérivés de la maquette fournie** (recadrages des
-voitures). Pour un rendu définitif, déposez vos propres photos dans `assets/img/`
-en conservant les noms de fichiers :
+Les sections utilisent **17 photographies générées spécifiquement pour leurs textes** avec
+l’outil intégré `image_gen` : trois véhicules, trois gestes de detailing, cinq matières,
+un habitacle, la conception sur mesure, un geste de finition et trois vues éditoriales.
+La liste exacte des 17 visuels et tous
+les prompts sont dans `assets/source/generated/manifest.json`.
 
-| Fichier | Emplacement | Cadrage conseillé |
-|---|---|---|
-| `hero-plate.jpg` | Hero, sections réalisations et CTA | 16:9, 1920×1080 |
-| `car-left.jpg`, `car-center.jpg`, `car-right.jpg` | Panneaux, galerie, cartes | 4:3 ou 4:5 |
-| `build-1.jpg`, `build-2.jpg`, `build-3.jpg` | Rail « L'ordinaire s'arrête ici », cartes | 4:5 portrait |
-| `detail-red.jpg`, `detail-grille.jpg`, `detail-light.jpg` | Détails atelier, bandeaux | paysage |
-| `floor-texture.jpg` | Fonds de section | paysage |
-| `noir-texture.jpg` | Fond texture noir de la vidéo 2 (**déjà filtré + grain incrusté**, ne pas réappliquer de filtre CSS dessus) | 16:9, ~1440 px de large |
+- Originaux PNG : `assets/source/generated/`.
+- Images WebP optimisées et variantes de 640 px : `assets/img/generated/`.
+- Chaque image intégrée a des dimensions, un `srcset` et un décodage asynchrone.
+- La carte « Intérieur » montre l’habitacle, « Laque » une macro de peinture,
+  et « Identité » la conception avec croquis et échantillons.
+- Les séquences animées du hero gardent leurs posters synchronisés. Les anciennes
+  extractions JPG restent sur disque mais ne servent plus aux sections éditoriales.
 
-Pour régénérer automatiquement les visuels à partir d'une nouvelle image composite
-(avec le texte incrusté retiré) :
+Pour réexporter les WebP depuis les originaux, sans utiliser les vidéos :
 
 ```powershell
-python tools/derive_assets.py "chemin\vers\image.png"
+python tools/build_images.py
 ```
+
+Le crédit de chaque page affiche **POWERED BY** et le logo fourni, lié à
+`https://nevolabs.ch`. L’original transparent est conservé dans `assets/img/nevolabs.png` ;
+un filtre CSS l’affiche en blanc sur le footer sombre, sans modifier son dessin.
+Le modèle `tools/build_pages.py` reprend les mêmes images et le même crédit.
 
 ## 6. À compléter avant la mise en ligne
 
@@ -315,7 +366,12 @@ python tools/derive_assets.py "chemin\vers\image.png"
 - [ ] Brancher le formulaire : il affiche une confirmation côté navigateur ; pour
       recevoir les demandes, connectez-le à Netlify Forms, Formspree ou un endpoint
       maison (`<form action="...">` dans `contact.html`).
-- [ ] Faire relire les pages légales (cookies, confidentialité, conditions) par un
+- [ ] Remplacer les quatre chiffres de la section « L'atelier en chiffres »
+      (années d'atelier, véhicules réalisés, marques accompagnées) par vos chiffres réels :
+      ce sont aujourd'hui des placeholders de mise en page.
+- [ ] Vérifier les textes de la section « Méthode » (écoute, conception, fabrication,
+      remise) : ils décrivent un déroulé type, à ajuster à votre fonctionnement.
+- [ ] Faire relire les pages légales (confidentialité, conditions) par un
       conseil juridique — les textes fournis sont des bases à adapter.
 - [ ] Remplacer les visuels provisoires par vos photos (voir §5).
 
@@ -323,10 +379,16 @@ python tools/derive_assets.py "chemin\vers\image.png"
 
 ```powershell
 python tools/derive_assets.py <image.png>   # visuels du site à partir de la maquette
+python tools/build_images.py                # optimise les photographies générées en WebP
 python tools/build_pages.py                 # regénère contact.html + pages légales
 node tools/shoot.cjs                        # captures QA (desktop + mobile)
 node tools/shoot-hero.cjs                   # captures QA de la séquence du hero
 node tools/shoot-atelier.cjs                # captures QA de la vidéo 2 (carré + fluidité)
+node tools/_qa-board.cjs before 1440 900    # planche : une capture par section
+node tools/_qa-craft-seq.cjs s1 1440 900    # un cliché par geste de l'atelier
+node tools/_qa-intro.cjs                    # l'intro rend-elle bien la main ?
+node tools/_qa-sansjs.cjs                   # rendu sans JavaScript + focus clavier
+python tools/_sheet.py tools/_shots/board before-1440 planche.png   # assemble la planche
 ```
 
 Les captures nécessitent Playwright et Chrome ; `build_pages.py` réécrit les pages
@@ -353,3 +415,5 @@ ordres de défilement.
   `sitemap.xml`, structure de titres hiérarchisée.
 - **Poids** : aucune dépendance de build ; polices Google Fonts (Geist + Playfair
   Display), images en JPEG optimisé.
+
+Ce site concept ne comporte aucun bandeau ni page cookies. Aucun outil de mesure d’audience n’est intégré.

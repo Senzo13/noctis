@@ -21,13 +21,13 @@ HEAD = """<!DOCTYPE html>
 <link rel="canonical" href="https://noctis.fr/{slug}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{description}">
-<meta property="og:image" content="assets/img/hero-plate.jpg">
+<meta property="og:image" content="assets/img/generated/showroom-nocturne.webp">
 <meta name="theme-color" content="#0C0C0C">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/style.css?v=38">
 </head>
 <body>
 
@@ -88,7 +88,6 @@ HEAD = """<!DOCTYPE html>
   </div>
   <div class="menu__foot">
     <ul class="menu__foot-links">
-      <li><a href="cookies.html">Cookies</a></li>
       <li><a href="confidentialite.html">Confidentialité</a></li>
       <li><a href="conditions.html">Conditions</a></li>
       <li><a href="contact.html">contact@noctis.fr</a></li>
@@ -127,7 +126,6 @@ HEAD = """<!DOCTYPE html>
       <div class="footer__col">
         <h4>Informations</h4>
         <ul>
-          <li><a href="cookies.html">Cookies</a></li>
           <li><a href="confidentialite.html">Confidentialité</a></li>
           <li><a href="conditions.html">Conditions</a></li>
         </ul>
@@ -141,8 +139,11 @@ HEAD = """<!DOCTYPE html>
       </div>
     </div>
     <div class="footer__bottom">
-      <span>© <span data-year>2026</span> NOCTIS — Tous droits réservés</span>
-      <span>Propulsé par NEVOLABS</span>
+<span>© <span data-year>2026</span> NOCTIS. Tous droits réservés</span>
+      <a class="footer__credit" href="https://nevolabs.ch" target="_blank" rel="noopener">
+        <span>POWERED BY</span>
+        <img src="assets/img/nevolabs.png" alt="NevoLabs" width="256" height="43" loading="lazy" decoding="async">
+      </a>
       <div class="footer__socials">
         <a href="#" target="_blank" rel="noopener" aria-label="LinkedIn NOCTIS"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm7 0h3.8v1.71h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.76V21h-4v-5.6c0-1.34-.03-3.07-1.9-3.07-1.9 0-2.2 1.46-2.2 2.97V21h-4V9Z"/></svg></a>
         <a href="#" target="_blank" rel="noopener" aria-label="Instagram NOCTIS"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c3.2 0 3.58.01 4.85.07 1.17.05 1.97.24 2.67.51.72.28 1.3.66 1.87 1.23.57.57.95 1.15 1.23 1.87.27.7.46 1.5.51 2.67.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.24 1.97-.51 2.67a5.2 5.2 0 0 1-1.23 1.87 5.2 5.2 0 0 1-1.87 1.23c-.7.27-1.5.46-2.67.51-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.97-.24-2.67-.51a5.2 5.2 0 0 1-1.87-1.23 5.2 5.2 0 0 1-1.23-1.87c-.27-.7-.46-1.5-.51-2.67C2.21 15.58 2.2 15.2 2.2 12s.01-3.58.07-4.85c.05-1.17.24-1.97.51-2.67.28-.72.66-1.3 1.23-1.87A5.2 5.2 0 0 1 5.88 2.78c.7-.27 1.5-.46 2.67-.51C9.82 2.21 10.2 2.2 12 2.2Zm0 1.8c-3.15 0-3.5.01-4.73.07-.94.04-1.45.2-1.79.33-.45.17-.77.38-1.11.72-.34.34-.55.66-.72 1.11-.13.34-.29.85-.33 1.79C3.26 9.25 3.25 9.6 3.25 12s.01 2.75.07 3.98c.04.94.2 1.45.33 1.79.17.45.38.77.72 1.11.34.34.66.55 1.11.72.34.13.85.29 1.79.33 1.23.06 1.58.07 4.73.07s3.5-.01 4.73-.07c.94-.04 1.45-.2 1.79-.33.45-.17.77-.38 1.11-.72.34-.34.55-.66.72-1.11.13-.34.29-.85.33-1.79.06-1.23.07-1.58.07-3.98s-.01-2.75-.07-3.98c-.04-.94-.2-1.45-.33-1.79a2.98 2.98 0 0 0-.72-1.11 2.98 2.98 0 0 0-1.11-.72c-.34-.13-.85-.29-1.79-.33C15.5 4.01 15.15 4 12 4Zm0 3.05a4.95 4.95 0 1 1 0 9.9 4.95 4.95 0 0 1 0-9.9Zm0 1.8a3.15 3.15 0 1 0 0 6.3 3.15 3.15 0 0 0 0-6.3Zm5.15-2.1a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3Z"/></svg></a>
@@ -152,28 +153,26 @@ HEAD = """<!DOCTYPE html>
   </div>
 </footer>
 
-<div class="cookie-bar" data-cookie-bar role="dialog" aria-label="Préférences de cookies">
-  <p>Nous utilisons des cookies pour mesurer l'audience du site et améliorer votre expérience. Vous pouvez accepter, refuser ou en savoir plus dans notre <a href="cookies.html">politique cookies</a>.</p>
-  <div class="cookie-bar__actions">
-    <button class="btn btn--solid" type="button" data-cookie-choice="accepted"><span data-text="Accepter"><span>Accepter</span></span></button>
-    <button class="btn" type="button" data-cookie-choice="refused"><span data-text="Refuser"><span>Refuser</span></span></button>
-  </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js" defer></script>
-<script src="assets/js/main.js" defer></script>
+<script src="assets/js/main.js?v=38" defer></script>
 </body>
 </html>
 """
 
 
 def page_hero(slug: str, label: str, title: str, intro: str, image: str) -> str:
+    # Dimensions du fichier généré : source autonome, jamais une frame vidéo.
+    from PIL import Image
+    with Image.open(ROOT / 'assets/img' / image) as source:
+        width, height = source.size
+    small = image.replace('.webp', '-640.webp')
     return f"""
   <section class="page-hero">
     <div class="page-hero__bg">
-      <img src="assets/img/{image}" alt="" aria-hidden="true" data-intro-image>
+      <img src="assets/img/{image}" srcset="assets/img/{small} 640w, assets/img/{image} {width}w" sizes="100vw" width="{width}" height="{height}" decoding="async" alt="" aria-hidden="true" data-intro-image>
     </div>
     <div class="page-hero__inner">
       <nav class="breadcrumb" aria-label="Fil d'ariane">
@@ -190,7 +189,7 @@ CONTACT_BODY = page_hero(
     "Contact",
     "Démarrer votre projet",
     "Décrivez-nous le véhicule, l'intention et le résultat recherché. Nous revenons vers vous sous 24 h ouvrées avec une première lecture de votre projet.",
-    "detail-red.jpg",
+    "generated/supercar-face.webp",
 ) + """
 
   <section class="section">
@@ -274,49 +273,12 @@ CONTACT_BODY = page_hero(
 """
 
 
-COOKIES_BODY = page_hero(
-    "cookies",
-    "Cookies",
-    "Politique cookies",
-    "Ce site utilise un nombre limité de cookies, uniquement pour mesurer son audience et améliorer votre expérience de navigation.",
-    "floor-texture.jpg",
-) + """
-
-  <section class="section">
-    <div class="wrap">
-      <div class="prose" data-anim="fade-up">
-        <h2>Qu'est-ce qu'un cookie ?</h2>
-        <p>Un cookie est un petit fichier texte déposé sur votre appareil lors de la visite d'un site. Il permet de conserver des informations relatives à votre navigation, par exemple vos préférences d'affichage ou des statistiques de fréquentation anonymisées.</p>
-
-        <h2>Cookies utilisés</h2>
-        <ul>
-          <li><strong>Cookies essentiels</strong> — nécessaires au fonctionnement du site et à la mémorisation de votre choix concernant les cookies. Ils ne peuvent pas être désactivés.</li>
-          <li><strong>Cookies de mesure d'audience</strong> — statistiques agrégées et anonymes (pages consultées, durée de visite). Ils nous aident à améliorer le contenu et les parcours.</li>
-          <li><strong>Cookies tiers</strong> — aucun cookie publicitaire n'est déposé sur ce site.</li>
-        </ul>
-
-        <h2>Votre choix</h2>
-        <p>Lors de votre première visite, un bandeau vous permet d'accepter ou de refuser les cookies de mesure d'audience. Votre choix est conservé localement dans votre navigateur et peut être modifié à tout moment en effaçant les données du site.</p>
-
-        <h2>Gérer les cookies depuis votre navigateur</h2>
-        <p>Vous pouvez à tout moment configurer votre navigateur pour refuser les cookies, être alerté avant leur dépôt ou les supprimer. Le refus de certains cookies peut affecter le confort de navigation.</p>
-
-        <h2>Contact</h2>
-        <p>Pour toute question relative aux cookies : <a href="mailto:contact@noctis.fr">contact@noctis.fr</a>.</p>
-
-        <p><em>Dernière mise à jour : à compléter avant mise en ligne. Ce document doit être relu par un conseil juridique pour être pleinement conforme.</em></p>
-      </div>
-    </div>
-  </section>
-"""
-
-
 CONFIDENTIALITE_BODY = page_hero(
     "confidentialite",
     "Confidentialité",
     "Politique de confidentialité",
     "Nous ne collectons que les informations nécessaires au traitement de votre demande et ne les transmettons jamais à des tiers à des fins commerciales.",
-    "car-center.jpg",
+    "generated/atelier-finition.webp",
 ) + """
 
   <section class="section">
@@ -329,7 +291,6 @@ CONFIDENTIALITE_BODY = page_hero(
         <ul>
           <li>Répondre à votre demande et préparer une proposition commerciale.</li>
           <li>Assurer le suivi de la relation et la gestion du projet.</li>
-          <li>Mesurer l'audience du site de manière agrégée et anonyme.</li>
         </ul>
 
         <h2>Base légale</h2>
@@ -356,7 +317,7 @@ CONDITIONS_BODY = page_hero(
     "Conditions",
     "Conditions générales",
     "Les présentes conditions encadrent l'utilisation du site NOCTIS ainsi que les prestations de personnalisation réalisées par l'atelier.",
-    "car-left.jpg",
+    "generated/showroom-nocturne.webp",
 ) + """
 
   <section class="section">
@@ -392,11 +353,6 @@ PAGES = {
         "Contact — NOCTIS",
         "Démarrez votre projet sur mesure avec l'atelier NOCTIS : décrivez votre véhicule et l'intention recherchée.",
         CONTACT_BODY,
-    ),
-    "cookies.html": (
-        "Politique cookies — NOCTIS",
-        "Informations sur les cookies utilisés par le site NOCTIS et sur la gestion de vos préférences.",
-        COOKIES_BODY,
     ),
     "confidentialite.html": (
         "Politique de confidentialité — NOCTIS",

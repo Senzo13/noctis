@@ -1,0 +1,109 @@
+{
+  "tool": "image_gen (built-in)",
+  "created": "2026-09-23",
+  "description": "Photographies éditoriales générées pour les sections du site. Les séquences animées et leurs posters restent dédiés au hero.",
+  "assets": [
+    {
+      "key": "atelier-film",
+      "source": "assets/source/generated/atelier-film.png",
+      "output": "assets/img/generated/atelier-film.webp",
+      "prompt": "Use case: photorealistic-natural. Create a single luxury automotive atelier editorial photograph, landscape 3:2. Close view of a professional craftsman's two anatomically correct black nitrile gloved hands laying clear paint protection film onto a curved gloss black car bonnet, right hand using a small soft squeegee, left hand tensioning visibly transparent film. The transparent sheet edge, fine slip solution and exact contact surface must be legible. Sophisticated clean dark workshop, soft broad white overhead lighting, realistic reflections, tactile crisp detail, premium European automotive campaign, restrained black and silver palette. Frame hands and working area in central 60 percent so both landscape and portrait crops work. No text, logos, watermarks, collage or video-frame look."
+    },
+    {
+      "key": "atelier-polissage",
+      "source": "assets/source/generated/atelier-polissage.png",
+      "output": "assets/img/generated/atelier-polissage.webp",
+      "prompt": "Use case: photorealistic-natural. Single premium editorial automotive photograph, landscape 3:2. A professional's black nitrile gloved hand steadily guiding a realistic dual-action orbital polisher with a round foam pad flat against a gloss black car bonnet. Visible fine flawless paint reflection and precise craftsmanship, clean charcoal detailing atelier softly out of focus, strip softbox light, exceptionally sharp believable mechanical detail. Both hand and polisher centered and fully framed, palette black, muted silver and warm natural skin at wrist. Luxury photographic art direction, no faces, text, logos, watermark or collage."
+    },
+    {
+      "key": "atelier-controle",
+      "source": "assets/source/generated/atelier-controle.png",
+      "output": "assets/img/generated/atelier-controle.webp",
+      "prompt": "Use case: photorealistic-natural. Single luxury automotive editorial photograph, landscape 3:2. Final paint quality inspection in an immaculate dark automotive atelier: a black nitrile gloved hand holds a small professional inspection light obliquely above a glossy black car fender. A perfectly clean narrow white reflection reveals the surface quality, fender curve and panel gap clearly visible. Centered craft detail, realistic reflected inspection light, elegant charcoal background, medium format photographic clarity, subtle silver highlights, no text, logos, watermark, collage."
+    },
+    {
+      "key": "suv-portrait",
+      "source": "assets/source/generated/suv-portrait.png",
+      "output": "assets/img/generated/suv-portrait.webp",
+      "prompt": "Use case: ads-marketing. Single premium automotive campaign photograph portrait 4:5. Full black luxury performance SUV in front three-quarter view, complete vehicle including all visible wheels fits centrally with generous margin. Bespoke satin black body, subtle exposed carbon front splitter and side skirt, large forged 23-inch anthracite wheels with real brake detail, believable road-legal European SUV proportions. Parked in refined dark concrete automotive atelier, lightly damp dark floor with restrained reflection, tall softbox tracing body, natural silver highlights, no exaggerated tuning, no smoke, no readable brand badges or plates, no text or watermark. Rich black but excellent readable body detail, ultra crisp professionally photographed."
+    },
+    {
+      "key": "supercar-portrait",
+      "source": "assets/source/generated/supercar-portrait.png",
+      "output": "assets/img/generated/supercar-portrait.webp",
+      "prompt": "Use case: ads-marketing. Single luxury automotive photograph portrait 4:5. Complete deep burgundy red mid-engine sports coupe from front three-quarter view, sculpted bonnet and low nose, tasteful exposed carbon splitter, black forged wheels and ceramic brakes, headlights off with visible precise lenses. Parked in a minimal charcoal architectural studio with broad softbox above and restrained silver rim lighting, smooth dark dry floor. Car completely in frame with generous space around it, realistic premium proportions, tactile lacquer, deep rich red without neon saturation. Editorial medium format photography, no text, no logos, no watermark, no collage."
+    },
+    {
+      "key": "coupe-portrait",
+      "source": "assets/source/generated/coupe-portrait.png",
+      "output": "assets/img/generated/coupe-portrait.webp",
+      "prompt": "Use case: ads-marketing. Single premium editorial photograph portrait 4:5. Complete elegant graphite black grand touring coupe, long sculptural bonnet, graceful low roofline and satin alloy wheels, seen from rear three-quarter with side profile visible, parked in calm upscale concrete automotive showroom. Entire car including wheels with breathing room centered in composition. Glimpses of warm dark saddle leather through windows. Restrained white architectural lighting and soft daylight, glossy finish detailed but no plastic CGI look. European bespoke luxury, no readable badges, no number plate text, no text, no watermark."
+    },
+    {
+      "key": "matiere-carbone",
+      "source": "assets/source/generated/matiere-carbone.png",
+      "output": "assets/img/generated/matiere-carbone.webp",
+      "prompt": "Use case: photorealistic-natural. Single macro photograph portrait 3:4. Extremely sharp 2x2 twill exposed carbon fibre on a subtly curved automotive aerodynamic component. Woven black graphite strands clearly legible under flawless transparent varnish, elegant diagonal white softbox reflection reveals depth, absolutely no water drops. Carbon fills the frame edge to edge, slight falloff in focus only in background. Rich charcoal, black and soft silver tones, premium materials editorial photograph. No hands, no words, no logos, no watermark, no collage."
+    },
+    {
+      "key": "matiere-film",
+      "source": "assets/source/generated/matiere-film.png",
+      "output": "assets/img/generated/matiere-film.webp",
+      "prompt": "Use case: photorealistic-natural. Single premium material photograph portrait 3:4. Close macro of a transparent automotive paint protection film being delicately lifted by one anatomically accurate black nitrile gloved hand over a perfectly clean satin black painted curved panel. The translucent sheet curls in a graceful arc with its thin edge and light transmission clearly visible, central focal subject. Refined dark atelier, large diffused white reflection, crisp tactile details, luxury editorial quality. No text, no logos, no watermark, no collage."
+    },
+    {
+      "key": "matiere-eau",
+      "source": "assets/source/generated/matiere-eau.png",
+      "output": "assets/img/generated/matiere-eau.webp",
+      "prompt": "Use case: photorealistic-natural. Single premium macro photograph portrait 3:4. Perfectly spherical tiny and medium water beads sitting on ceramic-coated glossy black automotive paint. Surface gently slopes diagonally, droplets have physically accurate white highlights and subtle reflections, distinct varied sizes with fine crisp focus across central area. Underlying rich ink black paint subtly metallic but no carbon weave. Clean premium photographic studio lighting, visual explanation of hydrophobic car protection, beautiful restrained abstract composition. No text, logos or watermark."
+    },
+    {
+      "key": "matiere-laque",
+      "source": "assets/source/generated/matiere-laque.png",
+      "output": "assets/img/generated/matiere-laque.webp",
+      "prompt": "Use case: photorealistic-natural. Single luxury automotive material macro photograph portrait 3:4. Sculptural curved deep oxblood red car fender with immaculate multilayer lacquer, strong elongated soft white studio reflection sweeping over the curve, subtle metallic paint particles and extremely rich wine red depth. Tight abstract architectural crop of bodywork, no wheels or headlights, panel form clearly tangible. Elegant premium studio photograph, sharply resolved paint, restrained contrast, no text, logo, watermark or collage."
+    },
+    {
+      "key": "matiere-lumiere",
+      "source": "assets/source/generated/matiere-lumiere.png",
+      "output": "assets/img/generated/matiere-lumiere.webp",
+      "prompt": "Use case: photorealistic-natural. Single premium automotive photograph portrait 3:4. Detailed close-up of a sophisticated modern headlight on a deep burgundy red sports car: precision optical lenses inside dark housing with a clean thin white daytime running light signature. Actual glass, lens geometry and red lacquer surrounding light sharply visible, central headlight framed completely with space above and below, dark luxury atelier backdrop, restrained light bloom, physically accurate reflections, elegant editorial macro photography. No text, badges, watermark or collage."
+    },
+    {
+      "key": "interieur-couture",
+      "source": "assets/source/generated/interieur-couture.png",
+      "output": "assets/img/generated/interieur-couture.webp",
+      "prompt": "Use case: photorealistic-natural. Single premium bespoke grand touring car interior photograph portrait 4:5, viewed from open passenger door. Black full grain leather sculpted seat in foreground with exquisitely detailed tonal double stitching, carbon fibre center console, brushed metal controls and thin warm ambient light following dashboard contour, second seat and steering wheel subtly visible. Sophisticated minimal cabin, anatomically plausible car interior, realistic textures and functional arrangement. Soft daylight and studio fill, rich blacks but legible details, luxury editorial medium format clarity, no logos, no text, no watermark."
+    },
+    {
+      "key": "identite-sur-mesure",
+      "source": "assets/source/generated/identite-sur-mesure.png",
+      "output": "assets/img/generated/identite-sur-mesure.webp",
+      "prompt": "Use case: photorealistic-natural. Single premium luxury automotive design consultation still life landscape 3:2. Carefully curated black and oxblood automotive leather samples, exposed carbon fibre sample, deep red lacquer paint swatch and a tasteful pencil silhouette sketch of a sports coupe on ivory paper arranged on a smoked oak atelier workbench. A single handcrafted car key without branding beside them. Every object intentional, refined editorial composition, natural side window light with charcoal background, premium bespoke material textures, crisp photograph with gentle depth of field. No legible words, no logos, no watermark, no collage."
+    },
+    {
+      "key": "atelier-finition",
+      "source": "assets/source/generated/atelier-finition.png",
+      "output": "assets/img/generated/atelier-finition.webp",
+      "prompt": "Use case: photorealistic-natural. Single luxury automotive atelier photograph landscape 3:2. A craftsperson's two anatomically correct hands fitting a precisely shaped black carbon fibre interior trim piece alongside a saddle-black stitched leather center console inside a luxury grand touring car. Tight carefully composed detail that shows material harmony, fine fit of panel edge and artisanal care. Dark atelier with soft directional white light, rich black leather grain and graphite carbon weave, realistic and exceptionally refined editorial photo. No faces, no text, no logos or watermark."
+    },
+    {
+      "key": "supercar-face",
+      "source": "assets/source/generated/supercar-face.png",
+      "output": "assets/img/generated/supercar-face.webp",
+      "prompt": "Use case: ads-marketing. Single premium automotive photograph landscape 16:9. Symmetrical frontal view of a complete deep burgundy red mid-engine sports coupe, elegant low sculptural bonnet, subtle carbon front splitter, precision white daytime running lights. Parked in a charcoal concrete design atelier beneath long white studio light, wide horizontal composition with clean darker space on both sides for website crop and titles. Excellent rich red lacquer detail, natural black tones, real full size vehicle proportions, crisp luxury campaign photography. No brand logos, no readable number plates, no people, text or watermark."
+    },
+    {
+      "key": "collection-atelier",
+      "source": "assets/source/generated/collection-atelier.png",
+      "output": "assets/img/generated/collection-atelier.webp",
+      "prompt": "Use case: ads-marketing. Single premium automotive campaign photograph landscape 16:9. Three distinct bespoke luxury vehicles parked motionless in a vast immaculate charcoal concrete automotive atelier: a black luxury performance SUV on the left, a deep burgundy red low mid-engine sports coupe in the center slightly forward, an elegant graphite grand touring coupe on the right. Carefully spaced complete silhouettes and wheels, wide architectural composition, restrained overhead linear white light illuminating body shapes and a smooth dark floor. Subtle reflections, beautiful readable details, refined realistic European automotive editorial photography, no dramatic fog, no neon, no words, logos or watermark."
+    },
+    {
+      "key": "showroom-nocturne",
+      "source": "assets/source/generated/showroom-nocturne.png",
+      "output": "assets/img/generated/showroom-nocturne.webp",
+      "prompt": "Use case: ads-marketing. Single premium luxury automotive showroom photograph panoramic landscape 16:9. An elegant minimalist charcoal concrete private car gallery at dusk with a deep red sports coupe and a graphite grand touring coupe parked far apart, seen through the architectural opening from an oblique angle. Warm narrow ceiling light and soft cool dusk entering from tall windows, generous shadowed architecture in the upper half for website heading, refined quietly luxurious setting, realistic detailed cars, polished dark stone floor with subtle reflections. No people, no neon, no smoke, no words, logos or watermark."
+    }
+  ]
+}

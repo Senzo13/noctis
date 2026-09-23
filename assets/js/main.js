@@ -50,6 +50,15 @@
   function revealPage() {
     if (introDone) return;
     introDone = true;
+    /* La phrase manifeste a fini son rôle dans l'intro : on efface tout ce
+       que GSAP a posé dessus (opacité, flou, transforms). Sans cela, un rendu
+       interrompu (onglet en arrière-plan, image perdue) peut la laisser à
+       l'écran, floue, par-dessus le titre. La séquence du carré la fait
+       revenir plus loin : on efface, on ne masque pas. */
+    if (window.gsap) {
+      window.gsap.set(document.querySelector("[data-manifesto-beat]"), { clearProps: "opacity,visibility,filter,transform" });
+      window.gsap.set(document.querySelectorAll(".hero__statement .word"), { clearProps: "filter,opacity,transform" });
+    }
     html.classList.remove("is-intro", "is-locked");
     if (lenis) lenis.start();
     document.body.classList.add("is-loaded");
@@ -182,9 +191,12 @@
 
     gsap.set(beat, { opacity: 0 });
     gsap.set(eyebrow, { opacity: 0, y: 14 });
-    gsap.set(words, { opacity: 0, y: 22, filter: "blur(10px)" });
     if (bar) gsap.set(bar, { opacity: 0 });
     if (barFill) gsap.set(barFill, { scaleX: 0 });
+    gsap.set(words, { opacity: 0, y: 22, filter: "blur(10px)" });
+    // GSAP vient de mesurer chaque mot pour poser son transform : si un blanc
+    // s'est décalé au passage, on refait la découpe avant la chorégraphie.
+    words = repareEspaces(manifesto, words);
 
     gsap.timeline({ defaults: { ease: "power3.out" }, onComplete: revealPage })
       // la caméra : travelling avant, et décadrage qui se resserre
@@ -212,6 +224,12 @@
     window.location.search.indexOf("intro=0") === -1
   );
   if (introPlays) {
+    /* La phrase manifeste doit être mesurable pendant que GSAP la met en
+       place : sans cela le navigateur ne peut pas la mesurer, GSAP sort les
+       mots de leur parent pour y arriver, et les espaces se décalent (la
+       phrase s'écrit « lesvéhicules »). `gsap-ready` donne au bloc sa vraie
+       mise en page avant la première mesure. */
+    html.classList.add("gsap-ready");
     // l'intro se joue depuis le haut : on empêche le navigateur de restaurer
     // une position de défilement en plein milieu de la séquence
     if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
@@ -270,6 +288,31 @@
     });
     el.dataset.split = "true";
     return Array.prototype.slice.call(el.querySelectorAll(".word"));
+  }
+
+  /* GSAP mesure un mot en le sortant de son parent : le blanc qui le séparait
+     du mot suivant passe alors devant lui, et la phrase se colle
+     (« lesvéhicules »). C'est visible dès que la phrase est animée dans un
+     bloc que le navigateur ne peut pas mesurer (display:none, visibility…).
+     On mesure donc l'écart réel entre les mots, et on refait la découpe si
+     deux mots se touchent. */
+  function repareEspaces(el, words) {
+    if (!el || words.length < 2) return words;
+    var colle = false;
+    for (var i = 1; i < words.length; i += 1) {
+      var avant = words[i - 1].getBoundingClientRect();
+      var apres = words[i].getBoundingClientRect();
+      var memeLigne = Math.abs(avant.top - apres.top) < 2;
+      if (!memeLigne) continue;                        // mot à la ligne : normal
+      if (apres.left - (avant.left + avant.width) > 0.5) continue;
+      colle = true;                                    // deux mots se touchent
+      break;
+    }
+    if (!colle) return words;
+    var textes = words.map(function (mot) { return mot.textContent.trim(); });
+    el.dataset.split = "false";
+    el.textContent = textes.join(" ");
+    return splitWords(el);
   }
 
   /* ------------------------------------------------------------------ */
@@ -348,6 +391,51 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* L'atelier : les trois gestes, en séquence. Au défilement, la liste   */
+  /* des gestes s'allume geste par geste et le plan de travail change de  */
+  /* cadrage ; la lumière rasante balaie la pièce à chaque passage.       */
+  /* Sous 1024 px (ou sans mouvement), la section reste une pile simple : */
+  /* la liste, puis les trois plans, dans l'ordre.                        */
+  /* ------------------------------------------------------------------ */
+
+  function initCraftSequence() {
+    var stage = document.querySelector("[data-craft]");
+    if (!stage || reduceMotion || !hasScrollTrigger) return;
+
+    var steps = Array.prototype.slice.call(stage.querySelectorAll("[data-craft-step]"));
+    var frames = Array.prototype.slice.call(stage.querySelectorAll("[data-craft-frame]"));
+    if (!steps.length || !frames.length) return;
+
+    var large = window.matchMedia("(min-width: 1024px)").matches;
+    var actif = 0;
+
+    function setActif(index) {
+      if (index === actif) return;
+      actif = index;
+      steps.forEach(function (step, i) {
+        step.classList.toggle("is-active", i === index);
+      });
+      frames.forEach(function (frame, i) {
+        frame.classList.toggle("is-active", i === index);
+      });
+    }
+
+    if (!large) return;   // pile statique : rien à piloter
+
+    window.ScrollTrigger.create({
+      trigger: stage,
+      start: "top top",
+      end: "bottom bottom",
+      onUpdate: function (self) {
+        var index = Math.floor(self.progress * steps.length);
+        if (index < 0) index = 0;
+        if (index > steps.length - 1) index = steps.length - 1;
+        setActif(index);
+      }
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Parallaxe à la souris : la scène bouge un peu avec le curseur, comme  */
   /* une caméra de jeu (léger, désactivé en mouvement réduit).             */
   /* ------------------------------------------------------------------ */
@@ -404,6 +492,64 @@
   }
 
   /* --- Menu plein écran ------------------------------------------------- */
+
+  /* --- Repère de progression de lecture --------------------------------- */
+
+  var barreProgression = document.querySelector("[data-scroll-progress] i");
+  if (barreProgression) {
+    var derniereProgression = -1;
+    var majProgression = function () {
+      var course = document.documentElement.scrollHeight - window.innerHeight;
+      var p = course > 0 ? window.pageYOffset / course : 0;
+      p = p < 0 ? 0 : p > 1 ? 1 : p;
+      var arrondi = Math.round(p * 1000);
+      if (arrondi === derniereProgression) return;
+      derniereProgression = arrondi;
+      barreProgression.style.width = (arrondi / 10).toFixed(1) + "%";
+    };
+    window.addEventListener("scroll", majProgression, { passive: true });
+    window.addEventListener("resize", majProgression);
+    majProgression();
+  }
+
+  /* --- Méthode : l'étape au centre de l'écran s'allume ------------------ */
+
+  /* La seule bande claire du site : l'en-tête passe en noir tant qu'elle est
+     sous lui, sinon il disparaît (texte blanc sur fond ivoire). */
+  var bandeClaire = document.querySelector(".ordinary--clair");
+  var entete = document.querySelector(".header");
+  if (bandeClaire && entete && "IntersectionObserver" in window) {
+    var observateurClair = new IntersectionObserver(
+      function (entrees) {
+        entrees.forEach(function (entree) {
+          entete.classList.toggle("is-on-light", entree.isIntersecting);
+        });
+      },
+      // une bande de la hauteur de l'en-tête, tout en haut de l'écran
+      { rootMargin: "-84px 0px -100% 0px", threshold: 0 }
+    );
+    observateurClair.observe(bandeClaire);
+  }
+
+  var etapes = Array.prototype.slice.call(document.querySelectorAll("[data-step]"));
+  if (etapes.length) {
+    if ("IntersectionObserver" in window) {
+      var observateurEtapes = new IntersectionObserver(
+        function (entrees) {
+          entrees.forEach(function (entree) {
+            if (!entree.isIntersecting) return;
+            etapes.forEach(function (etape) { etape.classList.remove("is-active"); });
+            entree.target.classList.add("is-active");
+          });
+        },
+        // bande étroite au milieu de l'écran : une seule étape active à la fois
+        { rootMargin: "-46% 0px -46% 0px", threshold: 0 }
+      );
+      etapes.forEach(function (etape) { observateurEtapes.observe(etape); });
+    } else {
+      etapes.forEach(function (etape) { etape.classList.add("is-active"); });
+    }
+  }
 
   var navTriggers = document.querySelectorAll("[data-menu-toggle]");
   var menu = document.querySelector(".menu");
@@ -1090,33 +1236,6 @@
     };
   }
 
-  /* --- Bandeau cookies -------------------------------------------------- */
-
-  var cookieBar = document.querySelector("[data-cookie-bar]");
-  if (cookieBar) {
-    var STORAGE_KEY = "noctis-cookie-consent";
-    var stored = null;
-    try { stored = window.localStorage.getItem(STORAGE_KEY); } catch (err) { stored = null; }
-    if (!stored) {
-      // le bandeau arrive après l'intro : pendant la séquence, aucun texte
-      // ne vient se mêler à la phrase manifeste
-      var askCookies = function () { cookieBar.classList.add("is-visible"); };
-      if (document.body.classList.contains("is-loaded")) {
-        window.setTimeout(askCookies, 900);
-      } else {
-        document.addEventListener("noctis:reveal", function () {
-          window.setTimeout(askCookies, 900);
-        }, { once: true });
-      }
-    }
-    cookieBar.querySelectorAll("[data-cookie-choice]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        try { window.localStorage.setItem(STORAGE_KEY, btn.dataset.cookieChoice); } catch (err) { /* ignore */ }
-        cookieBar.classList.remove("is-visible");
-      });
-    });
-  }
-
   /* --- Formulaire de contact ------------------------------------------- */
 
   var form = document.querySelector("[data-contact-form]");
@@ -1252,6 +1371,26 @@
     });
 
     gsap.utils.toArray('[data-anim="fade-up"]').forEach(function (el) {
+      /* Les grands textes ne se contentent pas de monter : ils sortent du flou.
+         Le halo fantôme (feuille de style) reste après l'animation ; ici on ne
+         fait que dissiper la brume, comme une pièce qu'on éclaire. */
+      var grandTexte = el.matches(".h-display, .h-section, .h-card");
+      if (grandTexte) {
+        gsap.fromTo(
+          el,
+          { opacity: 0.14, y: 40, filter: "blur(13px)" },
+          {
+            opacity: 1,
+            y: 0,
+            filter: "blur(0px)",
+            duration: 1.4,
+            ease: "power3.out",
+            clearProps: "filter",
+            scrollTrigger: { trigger: el, start: "top 88%", once: true }
+          }
+        );
+        return;
+      }
       gsap.fromTo(
         el,
         { opacity: 0, y: 44 },
@@ -1264,6 +1403,9 @@
         }
       );
     });
+
+    /* L'atelier : les trois gestes se suivent au défilement. */
+    initCraftSequence();
 
     gsap.utils.toArray('[data-anim="fade"]').forEach(function (el) {
       gsap.fromTo(
@@ -1307,6 +1449,20 @@
     });
 
     /* Panneaux empilés : léger recul de la carte précédente */
+    /* L'atelier en chiffres : les nombres montent à l'entrée dans la section */
+    gsap.utils.toArray("[data-count]").forEach(function (el) {
+      var cible = Number(el.dataset.count) || 0;
+      var compteur = { v: 0 };
+      gsap.to(compteur, {
+        v: cible,
+        duration: 1.7,
+        ease: "power2.out",
+        snap: { v: 1 },
+        onUpdate: function () { el.textContent = String(Math.round(compteur.v)); },
+        scrollTrigger: { trigger: el, start: "top 90%", once: true }
+      });
+    });
+
     gsap.utils.toArray(".panel").forEach(function (panel, index, list) {
       if (index === list.length - 1) return;
       gsap.to(panel, {
