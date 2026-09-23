@@ -19,23 +19,20 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="assets/img/hero-plate.jpg">
-<link rel="stylesheet" href="assets/css/style.css?v=27">
+<link rel="stylesheet" href="assets/css/style.css?v=28">
 </head>
 <body>
 
 <div class="loader" aria-hidden="true">
-  <!-- Intro : elle se joue d'elle-même à l'arrivée sur le site, puis on
-       révèle le hero (vidéo 1). Le logo reste en repli si la vidéo échoue. -->
+  <!-- Intro : la vidéo se joue d'elle-même, avec un titre qui arrive un mot
+       à la fois « de loin », puis on révèle le hero (vidéo 1). -->
   <video class="loader__video" data-intro-video muted playsinline autoplay preload="auto">
-    <source src="assets/video/intro.mp4?v=25" type="video/mp4">
+    <source src="assets/video/intro.mp4?v=28" type="video/mp4">
   </video>
-  <div class="loader__inner">
-    <svg class="logo-mark" viewBox="0 0 34 42" fill="none" stroke="currentColor">
-      <line x1="6" y1="2" x2="6" y2="40" stroke-width="0.8"/>
-      <line x1="6" y1="2" x2="28" y2="40" stroke-width="2.2"/>
-      <line x1="28" y1="2" x2="28" y2="40" stroke-width="0.8"/>
-    </svg>
-    <span class="loader__bar"><i></i></span>
+  <div class="intro">
+    <span class="intro__eyebrow" data-intro-eyebrow>NOCTIS</span>
+    <h2 class="intro__headline" data-intro-headline>Pour ceux qui refusent l'ordinaire</h2>
+    <span class="intro__bar" data-intro-bar><i></i></span>
   </div>
 </div>
 
@@ -269,7 +266,7 @@
       <div class="wrap">
         <div class="panel__grid">
           <figure class="panel__media">
-            <img src="assets/img/car-left.jpg" alt="SUV de luxe préparé par NOCTIS" loading="lazy">
+            <img src="assets/img/car-left.jpg" alt="SUV de luxe préparé par NOCTIS" loading="lazy" data-reveal-image>
           </figure>
           <div class="panel__copy">
             <span class="panel__index">01 / 03</span>
@@ -285,7 +282,7 @@
       <div class="wrap">
         <div class="panel__grid">
           <figure class="panel__media">
-            <img src="assets/img/detail-red.jpg" alt="Détail de carrosserie rouge" loading="lazy">
+            <img src="assets/img/detail-red.jpg" alt="Détail de carrosserie rouge" loading="lazy" data-reveal-image>
           </figure>
           <div class="panel__copy">
             <span class="panel__index">02 / 03</span>
@@ -301,7 +298,7 @@
       <div class="wrap">
         <div class="panel__grid">
           <figure class="panel__media">
-            <img src="assets/img/car-right.jpg" alt="Coupé GT sombre préparé par NOCTIS" loading="lazy">
+            <img src="assets/img/car-right.jpg" alt="Coupé GT sombre préparé par NOCTIS" loading="lazy" data-reveal-image>
           </figure>
           <div class="panel__copy">
             <span class="panel__index">03 / 03</span>
@@ -325,7 +322,7 @@
           <a class="btn" href="contact.html" data-anim="fade-up"><span data-text="Démarrer votre projet"><span>Démarrer votre projet</span></span></a>
         </div>
         <figure class="manifesto__media">
-          <img src="assets/img/car-center.jpg" alt="Sportive rouge, face avant détaillée" loading="lazy" data-parallax="0.06">
+          <img src="assets/img/car-center.jpg" alt="Sportive rouge, face avant détaillée" loading="lazy" data-parallax="0.06" data-reveal-image>
         </figure>
       </div>
     </div>
@@ -443,7 +440,7 @@
           <a class="btn" href="realisations.html" data-anim="fade-up"><span data-text="Explorer les réalisations"><span>Explorer les réalisations</span></span></a>
         </div>
         <figure class="manifesto__media">
-          <img src="assets/img/hero-plate.jpg" alt="Collection de véhicules NOCTIS dans un studio sombre" loading="lazy">
+          <img src="assets/img/hero-plate.jpg" alt="Collection de véhicules NOCTIS dans un studio sombre" loading="lazy" data-reveal-image>
         </figure>
       </div>
     </div>
@@ -454,7 +451,7 @@
     <div class="wrap">
       <div class="manifesto__grid">
         <figure class="manifesto__media">
-          <img src="assets/img/car-right.jpg" alt="Coupé GT disponible à la vente" loading="lazy">
+          <img src="assets/img/car-right.jpg" alt="Coupé GT disponible à la vente" loading="lazy" data-reveal-image>
         </figure>
         <div class="manifesto__copy">
           <span class="label" data-anim="fade-up">Stock</span>
@@ -543,7 +540,7 @@
 
 <script src="assets/vendor/gsap.min.js?v=13" defer></script>
 <script src="assets/vendor/ScrollTrigger.min.js?v=13" defer></script>
-<script src="assets/vendor/lenis.min.js?v=27" defer></script>
-<script src="assets/js/main.js?v=27" defer></script>
+<script src="assets/vendor/lenis.min.js?v=28" defer></script>
+<script src="assets/js/main.js?v=28" defer></script>
 </body>
 </html>

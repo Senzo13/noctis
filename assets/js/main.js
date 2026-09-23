@@ -178,6 +178,38 @@
     });
   }
 
+  /* ------------------------------------------------------------------ */
+  /* Ouverture « carré » d'une image : un petit carré centré grandit au   */
+  /* défilement jusqu'à révéler l'image entière. Même signature que la    */
+  /* vidéo 2, réutilisée sur les visuels des sections.                    */
+  /* ------------------------------------------------------------------ */
+
+  function initImageReveal(img) {
+    var box = img.parentElement;
+    if (!box) return;
+    if (reduceMotion || !hasScrollTrigger) {
+      img.style.clipPath = "none";
+      return;
+    }
+    var small = Math.max(44, Math.min(box.clientWidth, box.clientHeight) * 0.18);
+    function open(progress) {
+      var w = box.clientWidth || 1;
+      var h = box.clientHeight || 1;
+      var side = small + (Math.max(w, h) - small) * progress;
+      var ix = Math.max(0, (w - side) / 2);
+      var iy = Math.max(0, (h - side) / 2);
+      img.style.clipPath = "inset(" + iy + "px " + ix + "px)";
+    }
+    open(0);
+    window.ScrollTrigger.create({
+      trigger: box,
+      start: "top 88%",
+      end: "top 32%",
+      scrub: 0.5,
+      onUpdate: function (self) { open(self.progress); }
+    });
+  }
+
   function scrollToTarget(target) {
     var el = typeof target === "string" ? document.querySelector(target) : target;
     if (!el) return;
@@ -857,6 +889,25 @@
   window.gsap.registerPlugin(window.ScrollTrigger);
   var gsap = window.gsap;
 
+  /* Titre de l'intro : les mots arrivent un à un « de loin » (flou + échelle),
+     pendant que la vidéo d'intro se joue. */
+  var introHeadline = document.querySelector("[data-intro-headline]");
+  if (introHeadline) {
+    var introWords = splitWords(introHeadline);
+    var introEyebrow = document.querySelector("[data-intro-eyebrow]");
+    var introBar = document.querySelector("[data-intro-bar]");
+    var introBarFill = introBar ? introBar.querySelector("i") : null;
+    gsap.set(introEyebrow, { opacity: 0, y: 18, filter: "blur(6px)" });
+    gsap.set(introWords, { opacity: 0, scale: 1.4, y: 34, filter: "blur(12px)" });
+    if (introBar) gsap.set(introBar, { opacity: 0 });
+    if (introBarFill) gsap.set(introBarFill, { scaleX: 0 });
+    gsap.timeline({ defaults: { ease: "power3.out" } })
+      .to(introEyebrow, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5 })
+      .to(introWords, { opacity: 1, scale: 1, y: 0, filter: "blur(0px)", duration: 0.65, stagger: 0.075 }, "-=0.22")
+      .to(introBar, { opacity: 1, duration: 0.25 }, "-=0.25")
+      .to(introBarFill, { scaleX: 1, duration: 1.35, ease: "none" }, "-=0.15");
+  }
+
   /* Le rush (vidéo 1) occupe le premier écran de défilement du hero ; le reste
      de la hauteur sert à la séquence du carré vidéo 2 (voir initRevealVideo). */
   function rushEnd() {
@@ -969,6 +1020,9 @@
   if (hasScrollTrigger) {
     document.querySelectorAll("[data-illuminate]").forEach(function (el) {
       initTextIllumination(el);
+    });
+    document.querySelectorAll("[data-reveal-image]").forEach(function (img) {
+      initImageReveal(img);
     });
 
     gsap.utils.toArray('[data-anim="fade-up"]').forEach(function (el) {

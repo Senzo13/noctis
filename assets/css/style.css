@@ -750,7 +750,7 @@ blockquote {
 .reveal__cue--tr { top: 1.5rem; right: 1.5rem; }
 
 .reveal__scrim {
-  background: radial-gradient(120% 120% at 50% 50%, rgba(10, 10, 10, 0.15) 0%, rgba(6, 6, 6, 0.78) 100%);
+  background: radial-gradient(90% 70% at 50% 50%, rgba(5, 5, 5, 0.74) 0%, rgba(6, 6, 6, 0.3) 62%, rgba(6, 6, 6, 0.88) 100%);
   opacity: 0;
   transition: opacity 0.8s var(--ease);
 }
@@ -784,10 +784,11 @@ blockquote {
 }
 
 .reveal__finale-sub {
-  font-size: 0.7rem;
-  letter-spacing: 0.32em;
+  font-size: clamp(0.78rem, 1.4vw, 1rem);
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--white);
+  text-shadow: 0 1px 24px rgba(0, 0, 0, 0.9);
 }
 
 .hero__inner {
@@ -1982,6 +1983,56 @@ html.gsap-ready [data-anim="stagger"] > * {
   height: 100%;
   object-fit: cover;
   background: var(--black);
+}
+
+.intro {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 1.25rem;
+  justify-items: center;
+  text-align: center;
+  padding-inline: 1.5rem;
+}
+
+.intro__eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.intro__headline {
+  max-width: 24ch;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 5vw, 4.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--white);
+  text-wrap: balance;
+}
+
+.intro__headline .word {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+}
+
+.intro__bar {
+  width: 10rem;
+  height: 1px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.intro__bar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--gold);
+  transform-origin: left;
+  transform: scaleX(0);
 }
 
 .loader__inner {
