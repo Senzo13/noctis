@@ -41,49 +41,190 @@
     }
   }
 
-  /* --- Chargement ------------------------------------------------------- */
+  /* --- Chargement & intro (vidéo 0) ------------------------------------- */
 
-  function hideLoader() {
-    if (document.body.classList.contains("is-loaded")) return;
-    // crossfade direct : le loader (vidéo + texte) fond vers le hero, sans
-    // passage par le noir pour ne pas casser l'immersion
+  var introDone = false;
+
+  /* Révèle le site : l'intro a fini sa course, la page redevient défilable et
+     le rush prend le relais sur l'image de raccord (aucun saut de cadrage). */
+  function revealPage() {
+    if (introDone) return;
+    introDone = true;
+    html.classList.remove("is-intro", "is-locked");
+    if (lenis) lenis.start();
     document.body.classList.add("is-loaded");
+    // le rush prend la main sur l'image de raccord, puis l'intro se retire
+    // (ses images sont libérées une fois le fondu terminé)
+    heroScrubLive = true;
+    startHeroSequence();
+    scrubHero(rushProgress());
+    if (introFramesCanvas) introFramesCanvas.classList.add("is-done");
+    window.setTimeout(function () {
+      if (introSequence) introSequence.dispose();
+      if (introFramesCanvas) introFramesCanvas.style.display = "none";
+    }, 900);
     document.dispatchEvent(new CustomEvent("noctis:reveal"));
   }
+
+  // Garde-fou : quelle que soit la panne (script, image, frame perdue), la
+  // page redevient lisible et défilable.
+  window.setTimeout(revealPage, 4200);
 
   document.querySelectorAll("[data-year]").forEach(function (el) {
     el.textContent = String(new Date().getFullYear());
   });
 
-  /* Intro vidéo : elle se lance automatiquement à l'arrivée, et on ne
-     révèle la page qu'à sa fin (le logo reste en repli si elle échoue). */
-  var introVideo = document.querySelector("[data-intro-video]");
-  var introFinished = !introVideo;
-  if (introVideo && !reduceMotion) {
-    introVideo.muted = true;
-    introVideo.defaultMuted = true;
-    introVideo.setAttribute("muted", "");
-    var revealPage = function () {
-      if (introFinished) return;
-      introFinished = true;
-      hideLoader();
-    };
-    introVideo.addEventListener("ended", revealPage, { once: true });
-    introVideo.addEventListener("error", revealPage, { once: true });
-    // on révèle un peu avant la fin : le fondu s'enchaîne avec le hero
-    var introTick = function () {
-      if (introVideo.duration && introVideo.currentTime >= introVideo.duration - 0.35) {
-        introVideo.removeEventListener("timeupdate", introTick);
-        revealPage();
-      }
-    };
-    introVideo.addEventListener("timeupdate", introTick);
-    var introPlay = introVideo.play();
-    if (introPlay && typeof introPlay.catch === "function") {
-      introPlay.catch(function () {
-        // autoplay refusé : le repli temporel ci-dessous révèle la page
+  /* ------------------------------------------------------------------ */
+  /* Trois séquences d'images, trois rôles                                */
+  /*                                                                      */
+  /*  · vidéo 0 (l'intro) : son propre plan, `assets/frames/intro`. Elle    */
+  /*    joue d'elle-même à l'arrivée, caméra comprise (travelling de la     */
+  /*    séquence + décadrage + parallaxe souris, comme la vidéo 1).         */
+  /*  · vidéo 1 (le rush) : la séquence du hero, pilotée au défilement.     */
+  /*    Elle reprend à HERO_START, l'image où l'intro se raccorde —         */
+  /*    mesurée image par image : la dernière image de l'intro correspond à  */
+  /*    l'image 19 du rush (corrélation des contours maximale, même cadrage  */
+  /*    de la voiture et même exposition). Le relais se fait donc en fondu   */
+  /*    invisible, sur la même image.                                        */
+  /*  · vidéo 2 (l'atelier) : inchangée, ouverte par le carré.              */
+  /* ------------------------------------------------------------------ */
+
+  var INTRO_LAST = 32;      // dernière image de l'intro (33 images)
+  var HERO_START = 19;      // première image du rush après le raccord
+  var heroSection = document.querySelector("[data-hero]");
+  var heroFramesCanvas = heroSection ? heroSection.querySelector("[data-hero-frames]") : null;
+  var introFramesCanvas = heroSection ? heroSection.querySelector("[data-intro-frames]") : null;
+  var introSequence = null;
+  var heroSequence = null;
+  var depthHero = null;
+  var heroScrubLive = false;   // le défilement ne pilote la séquence qu'après l'intro
+
+  if (!reduceMotion && (heroFramesCanvas || introFramesCanvas)) {
+    var portrait = window.matchMedia("(max-width: 767px)").matches;
+    if (introFramesCanvas) {
+      // l'intro joue tout de suite : ses 33 images sont chargées dans l'ordre
+      introSequence = initFrameSequence({
+        canvas: introFramesCanvas,
+        base: portrait ? "assets/frames/intro-mobile/" : "assets/frames/intro/",
+        count: INTRO_LAST + 1,
+        cle: "intro",
+        firstRange: INTRO_LAST
       });
+      if (introSequence) introSequence.load();
     }
+  }
+
+  /* Le rush (vidéo 1) n'entre en scène qu'à la fin de l'intro : on ne charge
+     ses images qu'à ce moment-là, pour ne pas doubler la mémoire occupée. */
+  function startHeroSequence() {
+    if (heroSequence || !heroFramesCanvas || reduceMotion) return heroSequence;
+    var portrait = window.matchMedia("(max-width: 767px)").matches;
+    heroSequence = initFrameSequence({
+      canvas: heroFramesCanvas,
+      base: portrait ? "assets/frames/hero-mobile/" : "assets/frames/hero/",
+      count: 120,
+      cle: "hero",
+      // l'image de raccord et ses voisines d'abord : le relais est prêt
+      firstRange: HERO_START + 8,
+      onFirstReady: function () {
+        // la séquence prend le relais sur le rendu 2.5D
+        if (depthHero) depthHero.disable();
+      }
+    });
+    if (heroSequence) {
+      heroSequence.load();
+      heroSequence.setIndex(HERO_START);
+    }
+    return heroSequence;
+  }
+
+  // Le défilement conduit le rush à partir de l'image de raccord : la position
+  // de défilement 0 correspond à la fin de l'intro.
+  function scrubHero(progress) {
+    if (!heroSequence || !heroScrubLive) return;
+    var p = progress < 0 ? 0 : progress > 1 ? 1 : progress;
+    heroSequence.setIndex(HERO_START + p * (heroSequence.count - 1 - HERO_START));
+  }
+
+  // course du rush, en écrans (le hero épingle un écran de défilement)
+  function rushProgress() {
+    var screen = window.innerHeight || 1;
+    var p = window.pageYOffset / screen;
+    return p < 0 ? 0 : p > 1 ? 1 : p;
+  }
+
+  /* --- La caméra de l'intro ---------------------------------------------
+     Le mouvement reprend exactement celui de la vidéo 1 : travelling avant
+     (la séquence d'images) + décadrage qui se resserre + parallaxe souris
+     (portée par le média du hero). Rien de tout cela ne touche le DOM :
+     tout se joue dans le dessin du canvas, donc le scrub du défilement peut
+     prendre la suite sans le moindre raccord. */
+
+  var introCam = { frame: 0, zoom: 1.06, panX: -0.014, panY: 0.01 };
+
+  function applyIntroCam() {
+    if (!introSequence) return;
+    introSequence.setIndex(introCam.frame);
+    introSequence.setCamera(introCam);
+  }
+
+  /* L'intro joue d'elle-même pendant que la phrase manifeste s'installe,
+     puis elle s'efface AVANT que le titre n'entre : un seul message à la
+     fois, jamais deux textes superposés. */
+  function playIntro() {
+    var gsap = window.gsap;
+    var beat = document.querySelector("[data-manifesto-beat]");
+    var eyebrow = document.querySelector("[data-intro-eyebrow]");
+    var manifesto = document.querySelector("[data-manifesto]");
+    var bar = document.querySelector("[data-intro-bar]");
+    var barFill = bar ? bar.querySelector("i") : null;
+    var words = manifesto ? splitWords(manifesto) : [];
+
+    gsap.set(beat, { opacity: 0 });
+    gsap.set(eyebrow, { opacity: 0, y: 14 });
+    gsap.set(words, { opacity: 0, y: 22, filter: "blur(10px)" });
+    if (bar) gsap.set(bar, { opacity: 0 });
+    if (barFill) gsap.set(barFill, { scaleX: 0 });
+
+    gsap.timeline({ defaults: { ease: "power3.out" }, onComplete: revealPage })
+      // la caméra : travelling avant, et décadrage qui se resserre
+      .to(introCam, { frame: INTRO_LAST, duration: 2.35, ease: "power2.inOut", onUpdate: applyIntroCam }, 0)
+      .to(introCam, { zoom: 1, panX: 0, panY: 0, duration: 2.6, ease: "power2.out", onUpdate: applyIntroCam }, 0)
+      // le rush commence à charger à mi-intro : son image de raccord est prête
+      // quand l'intro s'arrête
+      .call(function () { startHeroSequence(); }, null, 1.5)
+      // le texte de l'intro
+      .to(beat, { opacity: 1, duration: 0.5 }, 0.1)
+      .to(eyebrow, { opacity: 1, y: 0, duration: 0.5 }, 0.18)
+      .to(words, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.7, stagger: 0.07 }, 0.42)
+      .to(bar, { opacity: 1, duration: 0.3 }, 0.66)
+      .to(barFill, { scaleX: 1, duration: 1.5, ease: "none" }, 0.72)
+      // la phrase sort avant l'arrivée du titre
+      .to(beat, { opacity: 0, duration: 0.45, ease: "power2.inOut" }, 2.15);
+  }
+
+  // La vidéo 0 joue à chaque arrivée sur le site. Deux exceptions : un lien
+  // profond (ancre) qu'il serait absurde de couvrir, et ?intro=0 pour les
+  // mesures de QA qui doivent piloter le défilement dès l'arrivée.
+  var introPlays = Boolean(
+    introSequence && hasGsap && !reduceMotion &&
+    !window.location.hash &&
+    window.location.search.indexOf("intro=0") === -1
+  );
+  if (introPlays) {
+    // l'intro se joue depuis le haut : on empêche le navigateur de restaurer
+    // une position de défilement en plein milieu de la séquence
+    if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
+      lenis.stop();
+    } else {
+      html.classList.add("is-locked");
+      window.scrollTo(0, 0);
+    }
+    playIntro();
+  } else {
+    window.setTimeout(revealPage, reduceMotion ? 120 : 250);
   }
 
   /* --- Panneau de diagnostic : ajouter ?debug=1 à l'URL ---------------- */
@@ -95,30 +236,23 @@
       "color:#7CFF9B;padding:10px 12px;border:1px solid #7CFF9B;white-space:pre;pointer-events:none;max-width:92vw";
     document.body.appendChild(panel);
     window.setInterval(function () {
+      var frames = window.__noctisFrames || { intro: 0, hero: 0, atelier: 0, total: 120 };
       panel.textContent = [
-        "build : v20 (vidéos 1 et 2 en séquences d'images scrubbées)",
+        "build : v22 (vidéo 0 = plan d'ouverture à part, raccord mesuré au rush)",
         "fenêtre : " + window.innerWidth + "x" + window.innerHeight,
         "gsap:" + (typeof window.gsap !== "undefined" ? "ok" : "ABSENT") +
           "  scrolltrigger:" + (typeof window.ScrollTrigger !== "undefined" ? "ok" : "ABSENT") +
           "  lenis:" + (typeof window.Lenis !== "undefined" ? "ok" : "ABSENT"),
         "hero 2.5D actif : " + (document.querySelector(".hero__media.is-3d") ? "oui (images en cours)" : "non"),
-        "images hero chargées : " + window.__noctisFrames.hero + "/" + window.__noctisFrames.total,
-        "images vidéo 2       : " + window.__noctisFrames.atelier + "/" + window.__noctisFrames.total,
+        "intro terminée : " + (introDone ? "oui" : "non") +
+          "  image : " + (introSequence ? introSequence.currentIndex() : "-"),
+        "images vidéo 0       : " + (frames.intro || 0) + "/" + (INTRO_LAST + 1),
+        "images hero chargées : " + frames.hero + "/" + frames.total,
+        "images vidéo 2       : " + frames.atelier + "/" + frames.total,
         "séquence ouverte     : " + (window.__noctisReveal ? window.__noctisReveal().toFixed(3) : "absente"),
         "scroll  : " + Math.round(window.pageYOffset) + " px"
       ].join("\n");
     }, 250);
-  }
-
-  // repli temporel : plus long quand l'intro doit jouer (elle dure ~3 s)
-  var introDelay = (introVideo && !reduceMotion) ? 4500 : 250;
-  if (document.readyState === "complete") {
-    window.setTimeout(function () { if (!introFinished) hideLoader(); }, introDelay);
-  } else {
-    window.addEventListener("load", function () {
-      window.setTimeout(function () { if (!introFinished) hideLoader(); }, introDelay);
-    });
-    window.setTimeout(function () { if (!introFinished) hideLoader(); }, introDelay);
   }
 
   /* --- Découpage des textes en mots ------------------------------------- */
@@ -345,6 +479,11 @@
     var dessinee = -1;
     var cible = 0;
     var premiere = false;
+    // séquence libérée (l'intro rend ses images au navigateur après le relais)
+    var mort = false;
+    var timers = [];
+    // caméra de l'intro, appliquée dans le dessin (voir peindre/setCamera)
+    var camera = { zoom: 1, panX: 0, panY: 0 };
 
     function fichier(i) {
       var n = String(i + 1);
@@ -353,7 +492,7 @@
     }
 
     function charger(i) {
-      if (images[i]) return;
+      if (mort || images[i]) return;
       var img = new Image();
       img.decoding = "async";
       img.onload = function () {
@@ -373,19 +512,25 @@
 
     // On commence par une trame large (une image sur huit) pour que la
     // séquence réponde partout tout de suite, puis on comble les trous.
+    // `firstRange` (l'intro, vidéo 0) passe en premier et sans trou : elle
+    // joue tout de suite, alors que le rush peut se permettre d'attendre.
     function load() {
-      if (charge) return;
+      if (charge || mort) return;
       charge = true;
       var ordre = [];
       var i;
+      if (options.firstRange) {
+        for (i = 0; i <= options.firstRange && i < count; i += 1) ordre.push(i);
+      }
       for (i = 0; i < count; i += 8) ordre.push(i);
-      for (i = 0; i < count; i += 1) if (i % 8 !== 0) ordre.push(i);
+      for (i = 0; i < count; i += 1) if (i % 8 !== 0 && ordre.indexOf(i) === -1) ordre.push(i);
       ordre.forEach(function (n, rang) {
-        window.setTimeout(function () { charger(n); }, rang * 14);
+        timers.push(window.setTimeout(function () { charger(n); }, rang * 14));
       });
     }
 
     function resize() {
+      if (mort) return;
       var largeur = canvas.clientWidth || window.innerWidth;
       var hauteur = canvas.clientHeight || window.innerHeight;
       canvas.width = Math.round(largeur * dpr);
@@ -394,6 +539,7 @@
     }
 
     function peindre(i) {
+      if (mort) return;
       var img = images[i];
       if (!img || !pretes[i]) return;
       var cw = canvas.width;
@@ -401,11 +547,20 @@
       var iw = img.naturalWidth;
       var ih = img.naturalHeight;
       if (!cw || !ch || !iw || !ih) return;
-      // même cadrage qu'un object-fit: cover
-      var echelle = Math.max(cw / iw, ch / ih);
+      // même cadrage qu'un object-fit: cover, caméra comprise : l'intro
+      // (vidéo 0) avance la caméra dans le même dessin, sans toucher au DOM
+      // (aucune transformation d'élément, donc aucune bagarre avec GSAP)
+      var zoom = camera.zoom > 0 ? camera.zoom : 1;
+      var echelle = Math.max(cw / iw, ch / ih) * zoom;
       var w = iw * echelle;
       var h = ih * echelle;
-      ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
+      // le débattement est borné par ce que le zoom laisse dépasser : jamais
+      // de bande vide sur un bord
+      var margeX = Math.max(0, (w - cw) / 2);
+      var margeY = Math.max(0, (h - ch) / 2);
+      var dx = Math.max(-margeX, Math.min(margeX, camera.panX * cw));
+      var dy = Math.max(-margeY, Math.min(margeY, camera.panY * ch));
+      ctx.drawImage(img, (cw - w) / 2 - dx, (ch - h) / 2 - dy, w, h);
       dessinee = i;
       suivi[cle + "Index"] = i;
     }
@@ -419,19 +574,66 @@
       return -1;
     }
 
+    // i = index d'image, borné à la séquence
+    function setIndex(i) {
+      if (mort) return;
+      cible = i < 0 ? 0 : i > count - 1 ? count - 1 : Math.round(i);
+      if (cible === dessinee) return;
+      var proche = plusProche(cible);
+      if (proche >= 0) peindre(proche);
+    }
+
     // p = progression 0 → 1 de la séquence
     function setProgress(p) {
       var valeur = p < 0 ? 0 : p > 1 ? 1 : p;
-      cible = Math.round(valeur * (count - 1));
-      if (cible === dessinee) return;
-      var i = plusProche(cible);
-      if (i >= 0) peindre(i);
+      setIndex(valeur * (count - 1));
+    }
+
+    // Caméra de l'intro : zoom (1 = cadrage exact) et débattement latéral,
+    // exprimés en fraction de la largeur/hauteur affichée.
+    function setCamera(value) {
+      if (mort) return;
+      var zoom = value.zoom === undefined ? 1 : value.zoom;
+      var panX = value.panX || 0;
+      var panY = value.panY || 0;
+      if (zoom === camera.zoom && panX === camera.panX && panY === camera.panY) return;
+      camera.zoom = zoom;
+      camera.panX = panX;
+      camera.panY = panY;
+      if (dessinee >= 0) peindre(dessinee);
+    }
+
+    /* Libère les images de la séquence : l'intro n'a plus besoin d'être en
+       mémoire une fois que le rush (vidéo 1) a pris le relais. Le dessin déjà
+       présent sur le canvas reste affiché. */
+    function dispose() {
+      if (mort) return;
+      mort = true;
+      timers.forEach(function (t) { window.clearTimeout(t); });
+      timers.length = 0;
+      for (var i = 0; i < count; i += 1) {
+        if (images[i]) {
+          images[i].onload = null;
+          images[i].onerror = null;
+          images[i] = null;
+          pretes[i] = 0;
+        }
+      }
     }
 
     resize();
     window.addEventListener("resize", resize);
 
-    return { load: load, setProgress: setProgress, resize: resize, currentIndex: function () { return dessinee; } };
+    return {
+      load: load,
+      count: count,
+      setIndex: setIndex,
+      setProgress: setProgress,
+      setCamera: setCamera,
+      dispose: dispose,
+      resize: resize,
+      currentIndex: function () { return dessinee; }
+    };
   }
 
   /* ------------------------------------------------------------------ */
@@ -452,11 +654,15 @@
     var frame = section.querySelector("[data-reveal-frame]");
     var framesCanvas = section.querySelector("[data-reveal-frames]");
     var texture = section.querySelector("[data-reveal-texture]");
-    var sub = section.querySelector("[data-reveal-sub]");
     var cues = Array.prototype.slice.call(frame.querySelectorAll(".reveal__cue"));
     var scrim = frame.querySelector("[data-reveal-scrim]");
     var finale = frame.querySelector("[data-reveal-finale]");
-    var introOverlay = document.querySelector("[data-intro]");
+    // Le beat manifeste est le seul texte de la séquence : il revient seul sur
+    // le fond texture (ses mots s'allument au défilement), puis s'efface quand
+    // le carré s'ouvre. Il n'est jamais affiché en même temps que le titre.
+    var beat = document.querySelector("[data-manifesto-beat]");
+    var manifesto = document.querySelector("[data-manifesto]");
+    var beatWords = manifesto ? splitWords(manifesto) : [];
     if (!sticky || !frame) return;
 
     // Les images de la vidéo 2 sont dessinées dans le carré : elles avancent
@@ -501,7 +707,7 @@
     var lastClip = "";
     var lastOpacity = "";
     var lastTexture = "";
-    var lastSub = "";
+    var lastBeat = "";
     var lastY = window.pageYOffset;
     var lastMove = window.performance.now();
     var lastFrame = lastMove;
@@ -554,27 +760,36 @@
         lastTexture = textureOpacity;
       }
 
-      // la phrase « Chaque décision est intentionnelle… » apparaît sous la
-      // phrase manifeste, légèrement après le fond texture
-      var subOpacity = smooth(ramp(position, 1.02, 1.55)).toFixed(3);
-      if (sub && subOpacity !== lastSub) {
-        sub.style.opacity = subOpacity;
-        lastSub = subOpacity;
+      // La phrase manifeste revient SEULE (le titre n'est plus là), juste
+      // après le fond texture ; ses mots s'allument au défilement comme une
+      // ligne qu'on lit du doigt. Tant que l'intro n'a pas rendu la main, on
+      // ne touche pas à cette couche : c'est l'intro qui la pilote.
+      if (beat && introDone) {
+        var beatIn = smooth(ramp(position, DISSOLVE_FROM + 0.12, DISSOLVE_TO - 0.4));
+        var lit = ramp(position, 1.02, 1.62) * (beatWords.length + 2);
+        for (var w = 0; w < beatWords.length; w += 1) {
+          var mot = beatWords[w];
+          var teinte = clamp(lit - w, 0, 1);
+          var motOp = (0.22 + 0.78 * teinte).toFixed(3);
+          if (mot._op !== motOp) {
+            mot._op = motOp;
+            mot.style.opacity = motOp;
+          }
+        }
+        // elle s'efface dès que le carré commence à s'ouvrir, et disparaît
+        // complètement en haut du site (le titre reprend alors sa place)
+        var beatOut = 1 - smooth(ramp(value, OPEN_START - 0.06, OPEN_START + 0.2));
+        var beatKey = (beatIn * beatOut).toFixed(3);
+        if (beatKey !== lastBeat) {
+          beat.style.opacity = beatKey;
+          lastBeat = beatKey;
+        }
       }
 
       // ouverture : le carré part d'une fenêtre minuscule au centre et
       // grandit jusqu'à couvrir tout l'écran
       var seen = smooth(ramp(value, SQUARE_IN, SQUARE_SEEN));
       var open = smooth(ramp(value, OPEN_START, OPEN_END));
-      // la phrase manifeste (venue de l'intro) s'efface quand le carré s'ouvre
-      if (introOverlay) {
-        var introFade = smooth(ramp(value, OPEN_START - 0.06, OPEN_START + 0.2));
-        var introOpacity = (1 - introFade).toFixed(3);
-        if (introOverlay._op !== introOpacity) {
-          introOverlay._op = introOpacity;
-          introOverlay.style.opacity = introOpacity;
-        }
-      }
       var small = Math.max(40, Math.min(size.w, size.h) * 0.08);
       var side = small + (Math.max(size.w, size.h) - small) * open;
       var insetX = Math.max(0, (size.w - side) / 2);
@@ -883,7 +1098,16 @@
     var stored = null;
     try { stored = window.localStorage.getItem(STORAGE_KEY); } catch (err) { stored = null; }
     if (!stored) {
-      window.setTimeout(function () { cookieBar.classList.add("is-visible"); }, 1400);
+      // le bandeau arrive après l'intro : pendant la séquence, aucun texte
+      // ne vient se mêler à la phrase manifeste
+      var askCookies = function () { cookieBar.classList.add("is-visible"); };
+      if (document.body.classList.contains("is-loaded")) {
+        window.setTimeout(askCookies, 900);
+      } else {
+        document.addEventListener("noctis:reveal", function () {
+          window.setTimeout(askCookies, 900);
+        }, { once: true });
+      }
     }
     cookieBar.querySelectorAll("[data-cookie-choice]").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -925,26 +1149,6 @@
 
   // Parallaxe caméra à la souris sur la scène du hero et l'intro
   initMouseParallax(document.querySelector(".hero__media"), 24);
-  initMouseParallax(document.querySelector(".loader__video"), 14);
-
-  /* Titre de l'intro : les mots arrivent un à un « de loin » (flou + échelle),
-     pendant que la vidéo d'intro se joue. */
-  var introHeadline = document.querySelector("[data-intro-headline]");
-  if (introHeadline) {
-    var introWords = splitWords(introHeadline);
-    var introEyebrow = document.querySelector("[data-intro-eyebrow]");
-    var introBar = document.querySelector("[data-intro-bar]");
-    var introBarFill = introBar ? introBar.querySelector("i") : null;
-    gsap.set(introEyebrow, { opacity: 0, y: 18, filter: "blur(6px)" });
-    gsap.set(introWords, { opacity: 0, scale: 1.4, y: 34, filter: "blur(12px)" });
-    if (introBar) gsap.set(introBar, { opacity: 0 });
-    if (introBarFill) gsap.set(introBarFill, { scaleX: 0 });
-    gsap.timeline({ defaults: { ease: "power3.out" } })
-      .to(introEyebrow, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5 })
-      .to(introWords, { opacity: 1, scale: 1, y: 0, filter: "blur(0px)", duration: 0.65, stagger: 0.075 }, "-=0.22")
-      .to(introBar, { opacity: 1, duration: 0.25 }, "-=0.25")
-      .to(introBarFill, { scaleX: 1, duration: 1.35, ease: "none" }, "-=0.15");
-  }
 
   /* Le rush (vidéo 1) occupe le premier écran de défilement du hero ; le reste
      de la hauteur sert à la séquence du carré vidéo 2 (voir initRevealVideo). */
@@ -962,9 +1166,12 @@
     var media = hero.querySelector(".hero__media");
     var veil = hero.querySelector(".hero__veil");
 
-    var mediaEl = hero.querySelector(".hero__media");
-    var depthHero = null;
-    if (mediaEl && hero.querySelector("[data-hero-canvas]")) {
+    // Le rendu 2.5D n'est là que pour couvrir le temps de chargement de la
+    // séquence d'images : si celle-ci est déjà prête (l'intro tourne dessus),
+    // on ne le crée même pas.
+    var mediaEl = media;
+    var sequenceEnMain = heroFramesCanvas && heroFramesCanvas.classList.contains("is-ready");
+    if (mediaEl && hero.querySelector("[data-hero-canvas]") && !sequenceEnMain) {
       try {
         depthHero = initDepthHero(
           hero.querySelector("[data-hero-canvas]"),
@@ -1018,29 +1225,15 @@
     }
 
     // Vidéo 1 : les images préchargées suivent le défilement, image par image.
-    var heroFramesCanvas = hero.querySelector("[data-hero-frames]");
-    if (heroFramesCanvas) {
-      var portrait = window.matchMedia("(max-width: 767px)").matches;
-      var heroFrames = initFrameSequence({
-        canvas: heroFramesCanvas,
-        base: portrait ? "assets/frames/hero-mobile/" : "assets/frames/hero/",
-        count: 120,
-        cle: "hero",
-        onFirstReady: function () {
-          // la séquence prend le relais sur le rendu 2.5D
-          if (depthHero) depthHero.disable();
-        }
-      });
-      if (heroFrames) {
-        heroFrames.load();
-        window.ScrollTrigger.create({
-          trigger: hero,
-          start: "top top",
-          end: rushEnd,
-          onUpdate: function (self) { heroFrames.setProgress(self.progress); }
-        });
-      }
-    }
+    // Le rush reprend à l'image de raccord (HERO_START), donc sans saut de
+    // cadrage avec la fin de l'intro. La séquence n'existe qu'à partir de la
+    // fin de l'intro : `scrubHero` ne fait rien avant (voir heroScrubLive).
+    window.ScrollTrigger.create({
+      trigger: hero,
+      start: "top top",
+      end: rushEnd,
+      onUpdate: function (self) { scrubHero(self.progress); }
+    });
   } else {
     document.querySelectorAll(".hero__statement").forEach(splitWords);
   }

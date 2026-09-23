@@ -48,6 +48,14 @@ html.is-locked body {
   height: 100%;
 }
 
+/* Pendant la vidéo 0 (l'intro), rien d'autre que la phrase manifeste n'est à
+   l'écran : le titre et le bas du hero n'arrivent qu'à la fin de la séquence,
+   quand la phrase s'est effacée. Un seul bloc de texte à la fois. */
+html.is-intro .hero__title-block,
+html.is-intro .hero__foot {
+  opacity: 0;
+}
+
 body {
   margin: 0;
   background: var(--black);
@@ -600,6 +608,24 @@ blockquote {
   opacity: 1;
 }
 
+/* Vidéo 0 : le plan d'ouverture. Elle reste au-dessus du rush tant que
+   l'intro n'a pas rendu la main ; elle s'efface ensuite (les deux images se
+   raccordent, donc ce fondu est invisible), et ses images sont libérées. */
+.hero__intro-frames {
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.55s var(--ease);
+  pointer-events: none;
+}
+
+.hero__intro-frames.is-ready {
+  opacity: 1;
+}
+
+.hero__intro-frames.is-done {
+  opacity: 0;
+}
+
 .hero__canvas {
   position: absolute;
   inset: 0;
@@ -820,50 +846,65 @@ blockquote {
   text-shadow: 0 0 60px rgba(12, 12, 12, 0.75);
 }
 
-.hero__manifesto {
-  position: relative;
-  max-width: 62rem;
-  margin-inline: auto;
-}
-
-/* la phrase « Chaque décision est intentionnelle… » se place sous la phrase
-   manifeste, sans modifier sa position (elle est hors du flux) */
-.hero__statement-sub {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  transform: translateY(-50%);
-  max-width: 46rem;
-  margin-inline: auto;
-  font-size: clamp(0.9rem, 1.05vw, 1.08rem);
-  font-weight: 300;
-  line-height: 1.65;
-  letter-spacing: 0.01em;
-  color: rgba(242, 241, 237, 0.72);
-  opacity: 0;
-}
-
 .hero__statement:empty {
   display: none;
 }
 
-/* En JavaScript, la phrase manifeste se superpose au titre et se révèle au scroll */
-html.gsap-ready .hero__manifesto {
+/* La phrase manifeste et le titre occupent le même centre optique, mais ne
+   sont jamais visibles en même temps : la chorégraphie (JS) fait sortir la
+   phrase avant de faire entrer le titre. */
+.hero__beat,
+.hero__title-block {
   position: absolute;
   inset: auto 0 auto 0;
   top: 50%;
   transform: translateY(-50%);
+  width: 100%;
+}
+
+.hero__beat {
+  /* La phrase n'existe que par la chorégraphie : sans JavaScript elle est
+     masquée, plutôt que de se superposer au titre. */
+  display: none;
+}
+
+html.gsap-ready .hero__beat {
+  display: grid;
+  gap: 1.25rem;
+  justify-items: center;
+  text-align: center;
+  opacity: 0;
+}
+
+.hero__beat-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* Barre de progression de l'intro : elle suit la course de la caméra */
+.hero__beat-bar {
+  width: 10rem;
+  height: 1px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.hero__beat-bar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--gold);
+  transform-origin: left;
+  transform: scaleX(0);
 }
 
 .hero__statement .word {
+  display: inline-block;
   opacity: 1;
-}
-
-.hero__title-block {
-  position: relative;
-  width: 100%;
-  opacity: 1;
+  will-change: opacity;
 }
 
 .hero__title {
@@ -1966,6 +2007,9 @@ html.gsap-ready [data-anim="stagger"] > * {
   opacity: 0;
 }
 
+/* Préloader des pages intérieures : le monogramme NOCTIS et une barre fine.
+   (La page d'accueil n'en a plus : sa vidéo 0 joue le rôle d'ouverture, sur
+   le média du hero, avec la phrase manifeste.) */
 .loader {
   position: fixed;
   inset: 0;
@@ -1974,83 +2018,6 @@ html.gsap-ready [data-anim="stagger"] > * {
   place-items: center;
   background: var(--black);
   transition: none;
-}
-
-.loader__video {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  background: var(--black);
-  /* étalonnage pour rester dans l'ambiance sombre du hero (vidéo 1) */
-  filter: saturate(0.85) contrast(1.08) brightness(0.9);
-  transform: scale(1.05);
-}
-
-.loader::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: radial-gradient(120% 120% at 50% 45%, rgba(10, 10, 10, 0) 46%, rgba(8, 8, 8, 0.58) 100%);
-  pointer-events: none;
-}
-
-.intro {
-  position: fixed;
-  inset: 0;
-  z-index: 130;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 1.25rem;
-  justify-items: center;
-  text-align: center;
-  padding-inline: 1.5rem;
-  pointer-events: none;
-}
-
-.intro__eyebrow {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.42em;
-  text-transform: uppercase;
-  color: var(--gold);
-}
-
-.intro__headline {
-  max-width: 62rem;
-  margin: 0;
-  font-family: var(--font-heading);
-  font-size: clamp(1.8rem, 4.6vw, 4.6rem);
-  line-height: 1.16;
-  letter-spacing: -0.02em;
-  color: var(--white);
-  text-shadow: 0 0 60px rgba(12, 12, 12, 0.75);
-  text-wrap: balance;
-}
-
-.intro__headline .word {
-  display: inline-block;
-  will-change: transform, opacity, filter;
-}
-
-.intro__bar {
-  width: 10rem;
-  height: 1px;
-  background: var(--line);
-  overflow: hidden;
-}
-
-.intro__bar i {
-  display: block;
-  height: 100%;
-  width: 100%;
-  background: var(--gold);
-  transform-origin: left;
-  transform: scaleX(0);
 }
 
 .loader__inner {
@@ -2222,6 +2189,43 @@ body.is-loaded .loader {
     scroll-behavior: auto;
   }
 
+  /* Mouvement réduit : l'intro et la séquence du carré ne se jouent pas, et
+     les deux messages du hero sont simplement empilés l'un sous l'autre —
+     aucune superposition, aucun texte masqué. */
+  html.is-intro .hero__title-block,
+  html.is-intro .hero__foot {
+    opacity: 1;
+  }
+
+  .hero__center {
+    gap: clamp(1.75rem, 5vh, 3rem);
+  }
+
+  .hero__beat,
+  .hero__title-block {
+    position: static;
+    transform: none;
+    opacity: 1;
+  }
+
+  .hero__beat {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: center;
+    text-align: center;
+  }
+
+  /* la phrase reste un appui, pas un second titre : elle cède le poids
+     visuel au titre pour que la composition respire */
+  .hero__beat .hero__statement {
+    font-size: clamp(1.3rem, 3vw, 2.2rem);
+    opacity: 0.86;
+  }
+
+  .hero__statement .word {
+    opacity: 1;
+  }
+
   .hero {
     height: auto;
   }
@@ -2235,14 +2239,15 @@ body.is-loaded .loader {
     opacity: 1;
   }
 
-  .hero__statement .word {
-    opacity: 1;
-  }
-
   /* la séquence d'ouverture de la vidéo 2 est un effet de défilement :
      elle ne se joue pas, la page se contente du rush et de la phrase */
   .hero__reveal-texture,
   .hero__reveal-frame {
+    display: none;
+  }
+
+  /* la vidéo 0 ne se joue pas : le hero se contente de son image fixe */
+  .hero__intro-frames {
     display: none;
   }
 }

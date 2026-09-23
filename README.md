@@ -35,7 +35,7 @@ réel dans les balises `canonical` / `og:` de chaque page et dans `sitemap.xml`.
 ## 3. Structure
 
 ```
-index.html              Accueil (hero + séquence vidéo 2, services, réalisations, stock, CTA)
+index.html              Accueil (intro vidéo 0 + rush vidéo 1 + carré vidéo 2, services, CTA)
 realisations.html       Grille des réalisations
 stock.html              Véhicules disponibles
 contact.html            Formulaire de contact
@@ -46,7 +46,8 @@ robots.txt / sitemap.xml
 assets/css/style.css    Design system complet (thème, composants, responsive)
 assets/js/main.js       Animations, menu, vidéos, formulaire, cookies
 assets/img/*            Visuels dérivés de la maquette
-assets/video/*          Emplacements des vidéos (hero + atelier)
+assets/video/*          Vidéos sources (intro + hero + atelier)
+assets/frames/*         Séquences d'images jouées au canvas (intro, hero, atelier)
 assets/source/*         Image source fournie par le client
 tools/*                 Scripts utilitaires (dérivation d'images, capture QA)
 ```
@@ -64,18 +65,22 @@ caméra vers la voiture centrale directement dans le navigateur :
   centrale remplit le cadre, puis le texte apparaît.
 - Réglage de puissance : `MAX_AMOUNT` (dans `main.js`, 0.68 par défaut).
 
-Ordre de priorité des couches du hero :
+Ordre des couches du hero, de bas en haut (elles se remplacent d'elles-mêmes) :
 
-1. `assets/video/hero.mp4` s'il existe (rush filmé, piloté par le scroll) ;
-2. sinon le rendu 2.5D WebGL (par défaut, aucun fichier à produire) ;
-3. sinon l'image fixe `hero-plate.jpg` (si WebGL est indisponible).
+1. l'**image fixe** `hero-plate.jpg` — présente d'entrée, et seul visuel si WebGL et les
+   séquences sont indisponibles (ou sans JavaScript) ;
+2. le **rendu 2.5D WebGL** (`hero-depth.png`, aucun fichier vidéo à produire) — il couvre
+   le temps de chargement des séquences ;
+3. la **séquence du rush** `assets/frames/hero/` (vidéo 1) — pilotée au défilement, elle
+   prend le relais dès que sa première image est prête ;
+4. la **séquence de l'intro** `assets/frames/intro/` (vidéo 0) — au-dessus pendant
+   l'ouverture, puis elle se retire et libère ses images quand le rush prend la main.
 
-## 4 bis. Les deux vidéos (optionnelles, avec Leonardo)
+## 4 bis. Les trois vidéos (séquences d'images, jamais de `<video>`)
 
-**Les deux vidéos sont jouées image par image, pas par un `<video>`.** Elles sont
-converties en **séquences d'images** (`assets/frames/…`, 120 images WebP chacune, une image
-sur deux des 240 images sources) et dessinées dans un `<canvas>` selon la position de
-défilement.
+**Aucune vidéo n'est jouée avec `<video>`.** Elles sont converties en **séquences
+d'images** (`assets/frames/…`) et dessinées dans un `<canvas>` : 120 images WebP pour le
+rush et l'atelier (une image sur deux des 240 images sources), 33 pour l'intro.
 
 > **Pourquoi ?** Un navigateur ne déplace `currentTime` que quelques fois par seconde : le
 > pipeline « seek + décodage + composition » plafonne, donc un scrub vidéo avance par
@@ -86,8 +91,47 @@ défilement.
 > décode pendant le défilement (mesure : au plus **1 image de séquence d'écart** entre deux
 > images affichées, sur les deux vidéos).
 
+**Vidéo 0 — l'intro.** C'est un plan à part, avec son propre fichier source
+(`assets/video/intro.mp4`) et sa propre séquence (`assets/frames/intro/`, 33 images) : le
+plan d'ouverture du site. Elle joue d'elle-même à chaque arrivée sur la page d'accueil, et
+son tracé est piloté par GSAP (`playIntro()`, `introCam`, `INTRO_LAST` dans `main.js`) tout
+en étant **dessiné dans le canvas** (`sequence.setCamera()` : zoom + débattement, jamais de
+transformation DOM, donc aucune bagarre avec le scrub) :
+
+1. travelling avant image par image, du plan large sombre aux optiques allumées ;
+2. décadrage qui se resserre (zoom 1,06 → 1) ;
+3. parallaxe souris sur le média du hero, exactement la même que la vidéo 1.
+
+Le défilement est verrouillé le temps de la séquence (`lenis.stop()`), la position est
+ramenée en haut de page (`scrollRestoration = manual`), et un garde-fou de 4,2 s garantit
+que la page redevient lisible et défilable. `?intro=0` coupe l'intro (mesures de QA), et un
+lien profond (`index.html#services`) la saute aussi.
+
+**Le raccord intro → rush.** Il est mesuré, pas deviné : la dernière image de l'intro
+correspond à l'image **19** de la séquence du rush (corrélation des contours maximale,
+même cadrage de la voiture et même exposition). `HERO_START = 19` dans `main.js` fait donc
+démarrer le rush et le défilement à cette image : l'intro se retire en fondu sur son propre
+plan, et la caméra reprend exactement là où elle s'était arrêtée.
+
+> Pour changer d'intro, remplacez `assets/video/intro.mp4`, relancez
+> `python tools/build_frames.py intro`, puis **re-mesurez `HERO_START`** : comparez la
+> dernière image de `assets/frames/intro/` aux premières images de `assets/frames/hero/`
+> (corrélation des contours) pour retrouver l'image de raccord.
+
+**Un seul message à la fois.** Les deux blocs de texte du hero (phrase manifeste / titre)
+occupent le même centre optique et ne sont jamais affichés ensemble : l'intro joue la phrase,
+elle s'efface, le titre arrive, il part avec le rush, la phrase **revient seule** sur le fond
+texture (ses mots s'allument au défilement), puis s'efface quand le carré s'ouvre. Les
+réglages sont dans `playIntro()` (intro) et `initRevealSequence()` (`DISSOLVE_*`, qui règle
+aussi l'arrivée de la phrase sur le fond texture).
+
+- sans JavaScript, la phrase est masquée (`.hero__beat { display: none }`) : le hero reste
+  lisible (titre + bas de page), jamais deux textes superposés ;
+- en `prefers-reduced-motion: reduce`, l'intro ne joue pas et les deux messages sont
+  simplement empilés, sans mouvement ni superposition.
+
 **Vidéo 1 — le rush du hero.** Ses images suivent le premier écran de défilement du hero :
-le travelling avant est contrôlé au doigt.
+le travelling avant est contrôlé au doigt, à partir de l'image où l'intro s'est arrêtée.
 
 **Vidéo 2 — l'atelier.** Elle se déclenche à la fin du rush, quand la phrase manifeste est
 affichée. La séquence (celle du site officiel) est **épinglée dans le hero**, donc la page
@@ -287,6 +331,11 @@ node tools/shoot-atelier.cjs                # captures QA de la vidéo 2 (carré
 
 Les captures nécessitent Playwright et Chrome ; `build_pages.py` réécrit les pages
 concernées, donc ne lancez ces scripts que si vous acceptez de régénérer ces fichiers.
+
+Le paramètre d'URL `?intro=0` coupe l'intro (vidéo 0) : les scripts qui pilotent le
+défilement dès l'arrivée (`check-atelier.cjs`, `shoot-hero.cjs`, `shoot-flow.cjs`,
+`verify-wheel.cjs`) l'utilisent, sinon le verrouillage de l'intro avale leurs premiers
+ordres de défilement.
 
 ## 8. Notes techniques
 

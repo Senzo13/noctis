@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="is-intro">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,23 +19,19 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="assets/img/hero-plate.jpg">
-<link rel="stylesheet" href="assets/css/style.css?v=30">
+<link rel="stylesheet" href="assets/css/style.css?v=32">
+<noscript>
+  <!-- Sans JavaScript la chorégraphie de l'intro n'existe pas : on rend
+       directement le hero lisible (titre + bas de page), et la phrase
+       manifeste reste masquée pour ne jamais se superposer au titre. -->
+  <style>
+    html.is-intro { overflow: auto; }
+    html.is-intro .hero__title-block,
+    html.is-intro .hero__foot { opacity: 1; }
+  </style>
+</noscript>
 </head>
 <body>
-
-<div class="loader" aria-hidden="true">
-  <video class="loader__video" data-intro-video muted playsinline autoplay preload="auto">
-    <source src="assets/video/intro.mp4?v=28" type="video/mp4">
-  </video>
-</div>
-
-<!-- Phrase manifeste : elle arrive pendant l'intro (vidéo 0) et reste à
-     l'écran sur la vidéo 1, puis s'efface quand la vidéo 2 s'ouvre. -->
-<div class="intro" data-intro aria-hidden="true">
-  <span class="intro__eyebrow" data-intro-eyebrow>NOCTIS</span>
-  <h2 class="intro__headline" data-intro-headline>Nous ne modifions pas les véhicules</h2>
-  <span class="intro__bar" data-intro-bar><i></i></span>
-</div>
 
 <a class="skip-link" href="#contenu">Aller au contenu</a>
 
@@ -112,6 +108,10 @@
              « image sequence scrub ») : c'est ce qui donne un vrai pas à pas
              au scroll, là où un <video> se limite à quelques images/seconde. -->
         <canvas class="hero__frames" data-hero-frames aria-hidden="true"></canvas>
+        <!-- Vidéo 0 : le plan d'ouverture, sur sa propre séquence d'images.
+             Elle joue d'elle-même à l'arrivée, caméra comprise, puis se
+             retire quand le rush prend le relais — sur l'image de raccord. -->
+        <canvas class="hero__intro-frames" data-intro-frames aria-hidden="true"></canvas>
         <div class="hero__scrim"></div>
         <div class="hero__veil" aria-hidden="true"></div>
       </div>
@@ -124,7 +124,16 @@
 
       <div class="hero__inner">
         <div class="hero__center">
-          <p class="hero__statement-sub" data-reveal-sub>Chaque décision est intentionnelle, chaque détail a un sens, façonné selon vos goûts, votre mode de vie et vos exigences.</p>
+          <!-- Vidéo 0 : la phrase manifeste est la seule chose à l'écran
+               pendant l'intro (elle est portée par le média du hero, donc la
+               caméra continue de bouger derrière elle). Elle s'efface avant
+               l'arrivée du titre : jamais deux blocs de texte ensemble. -->
+          <div class="hero__beat" data-manifesto-beat>
+            <span class="hero__beat-eyebrow" data-intro-eyebrow>NOCTIS</span>
+            <p class="hero__statement" data-manifesto>Nous ne modifions pas les véhicules</p>
+            <span class="hero__beat-bar" data-intro-bar><i></i></span>
+          </div>
+
           <div class="hero__title-block">
             <h1 class="h-display hero__title">Pour ceux qui refusent l'ordinaire</h1>
           </div>
@@ -538,7 +547,7 @@
 
 <script src="assets/vendor/gsap.min.js?v=13" defer></script>
 <script src="assets/vendor/ScrollTrigger.min.js?v=13" defer></script>
-<script src="assets/vendor/lenis.min.js?v=30" defer></script>
-<script src="assets/js/main.js?v=30" defer></script>
+<script src="assets/vendor/lenis.min.js?v=32" defer></script>
+<script src="assets/js/main.js?v=32" defer></script>
 </body>
 </html>

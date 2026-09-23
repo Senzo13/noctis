@@ -9,7 +9,7 @@ const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const STEPS = (process.env.SHOOT_STEPS || "0,300,600,900,1300,1700,2100,2500,3000")
   .split(",")
   .map(Number);
-const URL = process.argv[2] || "file:///C:/dev/noctis/index.html";
+const URL = process.argv[2] || "file:///C:/dev/noctis/index.html?intro=0";
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });

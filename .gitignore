@@ -5,7 +5,12 @@ tools/_frames/
 tools/_sheet_*.png
 tools/_*.py
 tools/_*.png
+tools/_*.cjs
 
 # Systèmes
 .DS_Store
 Thumbs.db
+
+# Python
+__pycache__/
+*.pyc

@@ -21,7 +21,7 @@ const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
   page.on("pageerror", (err) => console.log("PAGEERROR:", err.message));
   page.on("console", (msg) => { if (msg.type() === "error") console.log("CONSOLE:", msg.text()); });
 
-  await page.goto("file:///C:/dev/noctis/index.html?debug=1", { waitUntil: "load" });
+  await page.goto("file:///C:/dev/noctis/index.html?debug=1&intro=0", { waitUntil: "load" });
   await page.waitForTimeout(2500);
 
   const steps = [];

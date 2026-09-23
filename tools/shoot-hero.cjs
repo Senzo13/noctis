@@ -27,7 +27,7 @@ const STEPS = [0, 400, 800, 1200, 1600, 1800];
     if (msg.type() === "error" && !/ERR_FILE_NOT_FOUND|net::/.test(msg.text())) console.log("CONSOLE:", msg.text());
   });
 
-  await page.goto("file:///C:/dev/noctis/index.html", { waitUntil: "load" });
+  await page.goto("file:///C:/dev/noctis/index.html?intro=0", { waitUntil: "load" });
   await page.waitForTimeout(3000);
 
   const state = await page.evaluate(() => ({
@@ -61,7 +61,7 @@ const STEPS = [0, 400, 800, 1200, 1600, 1800];
 
   // vue mobile : doit prendre la variante verticale de la vidéo
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("file:///C:/dev/noctis/index.html", { waitUntil: "load" });
+  await page.goto("file:///C:/dev/noctis/index.html?intro=0", { waitUntil: "load" });
   await page.waitForTimeout(2500);
   const mobile = await page.evaluate(() => {
     const f = window.__noctisFrames || {};
