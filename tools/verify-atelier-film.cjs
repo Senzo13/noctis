@@ -7,6 +7,7 @@ const base = process.argv.slice(2).find(arg => /^https?:/.test(arg)) || 'http://
 const timing = require('../output/atelier-film/timeline.json');
 const out = path.join(__dirname, '_shots', 'atelier-film');
 const mobileOnly = process.argv.includes('--mobile');
+const desktopOnly = process.argv.includes('--desktop');
 const filmMetadata = new WeakMap();
 
 async function seekScroll(page, seconds) {
@@ -42,7 +43,7 @@ function anchorAt(points, time) {
   fs.mkdirSync(out, { recursive: true });
   const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
   try {
-    for (const width of (mobileOnly ? [] : [1440, 1920])) {
+    for (const width of (mobileOnly ? [] : desktopOnly ? [1440] : [1440, 1920])) {
       const page = await browser.newPage({ viewport: { width, height: 900 } });
       const errors = [];
       page.on('pageerror', e => errors.push(e.message));
@@ -91,7 +92,8 @@ function anchorAt(points, time) {
       console.log(`Desktop ${width}: 4 cues, 3 tracked labels, reverse scrolling and finale PASS`);
     }
 
-    for (const reducedMotion of ['no-preference', 'reduce']) {
+    // Normal touch devices use the scroll film, covered by verify-mobile-film.cjs.
+    for (const reducedMotion of (desktopOnly ? [] : ['reduce'])) {
       const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, reducedMotion });
       const requests = [], errors = [];
       page.on('request', r => requests.push(r.url()));

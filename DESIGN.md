@@ -92,3 +92,15 @@ raison → même signal de défilement pour les deux films, pas de second lissag
 Mouvement réduit → visuel statique et lecteur atelier volontaire.
 Risque mémoire → cache borné à 18 images décodées par séquence, hors cache
 compressé ; tampon canvas plafonné à la résolution des sources.
+
+
+## Révision 47 — même récit filmé sur téléphone
+
+Le mobile conserve les vidéos 0 → 1 → 2 au scroll natif, dans un écran sticky,
+sans Lenis et sans activer les rails horizontaux desktop. Le raccord d’intro
+attend le dessin effectif de l’image cible du hero. En cas de lenteur ou
+d’échec, l’image d’intro peinte reste visible et la page reste défilable.
+Le film atelier est recadré au centre dans une fenêtre mobile plus haute ;
+les titres narratifs et noms des composants sont composés séparément, pour
+préserver leur lisibilité et la vue du moteur. Les contrôles du lecteur natif
+sont réservés à la préférence de mouvement réduit et à l’absence de JavaScript.

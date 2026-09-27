@@ -15,6 +15,9 @@
   html.classList.toggle("is-simple", simpleExperience);
   var hasGsap = typeof window.gsap !== "undefined";
   var hasScrollTrigger = hasGsap && typeof window.ScrollTrigger !== "undefined";
+  var mobileFilm = compactExperience && !reduceMotion && hasScrollTrigger && Boolean(document.querySelector("[data-hero]"));
+  var mobileHeroTrigger = null;
+  html.classList.toggle("has-mobile-film", mobileFilm);
 
   /* --- Défilement fluide (Lenis) ----------------------------------------
      Sans lui, chaque cran de molette arrive d'un seul coup : la vidéo 1 est
@@ -49,6 +52,19 @@
 
   var introDone = false;
   var introTimeline = null;
+  var introRetired = false;
+  var heroTargetFrame = 38;
+  var heroPortrait = null;
+
+  function retireIntro() {
+    if (introRetired || !introDone) return;
+    introRetired = true;
+    if (introFramesCanvas) introFramesCanvas.classList.add("is-done");
+    window.setTimeout(function () {
+      if (introSequence) introSequence.dispose();
+      if (introFramesCanvas) introFramesCanvas.style.display = "none";
+    }, 600);
+  }
 
   /* Révèle le site : l'intro a fini sa course, la page redevient défilable et
      le rush prend le relais sur l'image de raccord (aucun saut de cadrage). */
@@ -64,11 +80,10 @@
     heroScrubLive = true;
     startHeroSequence();
     scrubHero(rushProgress());
-    if (introFramesCanvas) introFramesCanvas.classList.add("is-done");
-    window.setTimeout(function () {
-      if (introSequence) introSequence.dispose();
-      if (introFramesCanvas) introFramesCanvas.style.display = "none";
-    }, 900);
+    if (!heroSequence || heroSequence.currentIndex() === heroTargetFrame) retireIntro();
+    // Failed/slow requests never lock the page or reveal the unrelated poster.
+    // Keep the final painted intro frame while releasing its decoded cache.
+    window.setTimeout(function () { if (!introRetired && introSequence) introSequence.dispose(); }, 15000);
     document.dispatchEvent(new CustomEvent("noctis:reveal"));
   }
 
@@ -105,17 +120,16 @@
   var depthHero = null;
   var heroScrubLive = false;   // le défilement ne pilote la séquence qu'après l'intro
 
-  // La vidéo 0 est conservée, y compris sur téléphone. Seules ses 65
-  // images sont chargées sur mobile ; le long scrub desktop reste désactivé.
+  // Mobile uses the same filmed handoff, with portrait intro/hero sources.
   var shouldPlayIntro = !reduceMotion && hasGsap && !window.location.hash && window.location.search.indexOf("intro=0") === -1;
   if (shouldPlayIntro && introFramesCanvas) {
     introSequence = initFrameSequence({
       canvas: introFramesCanvas,
-      base: compactExperience ? "assets/frames/intro-mobile-1080p30-20260927-q90/" : "assets/frames/intro-1080p30-20260927-q90/",
+      base: compactExperience && innerHeight >= innerWidth ? "assets/frames/intro-mobile-1080p30-20260927-q90/" : "assets/frames/intro-1080p30-20260927-q90/",
       count: INTRO_LAST + 1,
       cle: "intro",
       maxDecoded: 18,
-      maxWidth: compactExperience ? 608 : 1920,
+      maxWidth: compactExperience && innerHeight >= innerWidth ? 608 : 1920,
       firstRange: INTRO_LAST
     });
     if (introSequence) introSequence.load();
@@ -124,8 +138,9 @@
   /* Le rush (vidéo 1) n'entre en scène qu'à la fin de l'intro : on ne charge
      ses images qu'à ce moment-là, pour ne pas doubler la mémoire occupée. */
   function startHeroSequence() {
-    if (heroSequence || !heroFramesCanvas || simpleExperience) return heroSequence;
-    var portrait = window.matchMedia("(max-width: 767px)").matches;
+    if (heroSequence || !heroFramesCanvas || (simpleExperience && !mobileFilm)) return heroSequence;
+    var portrait = compactExperience && innerHeight >= innerWidth;
+    heroPortrait = portrait;
     heroSequence = initFrameSequence({
       canvas: heroFramesCanvas,
       base: portrait ? "assets/frames/hero-mobile-1080p30-20260927-q90/" : "assets/frames/hero-1080p30-20260927-q90/",
@@ -138,11 +153,12 @@
       onFirstReady: function () {
         // la séquence prend le relais sur le rendu 2.5D
         if (depthHero) depthHero.disable();
-      }
+      },
+      onFrame: function (index) { if (introDone && index === heroTargetFrame) retireIntro(); }
     });
     if (heroSequence) {
+      heroSequence.setIndex(heroTargetFrame);
       heroSequence.load();
-      heroSequence.setIndex(HERO_START);
     }
     return heroSequence;
   }
@@ -152,7 +168,8 @@
   function scrubHero(progress) {
     if (!heroSequence || !heroScrubLive) return;
     var p = progress < 0 ? 0 : progress > 1 ? 1 : progress;
-    heroSequence.setIndex(HERO_START + p * (heroSequence.count - 1 - HERO_START));
+    heroTargetFrame = Math.round(HERO_START + p * (heroSequence.count - 1 - HERO_START));
+    heroSequence.setIndex(heroTargetFrame);
   }
 
   // course du rush, en écrans (le hero épingle un écran de défilement)
@@ -778,7 +795,7 @@
       // (vidéo 0) avance la caméra dans le même dessin, sans toucher au DOM
       // (aucune transformation d'élément, donc aucune bagarre avec GSAP)
       var zoom = camera.zoom > 0 ? camera.zoom : 1;
-      var echelle = Math.max(cw / iw, ch / ih) * zoom;
+      var echelle = (options.contain ? Math.min(cw / iw, ch / ih) : Math.max(cw / iw, ch / ih)) * zoom;
       var w = iw * echelle;
       var h = ih * echelle;
       // le débattement est borné par ce que le zoom laisse dépasser : jamais
@@ -787,7 +804,20 @@
       var margeY = Math.max(0, (h - ch) / 2);
       var dx = Math.max(-margeX, Math.min(margeX, camera.panX * cw));
       var dy = Math.max(-margeY, Math.min(margeY, camera.panY * ch));
-      ctx.drawImage(img, (cw - w) / 2 - dx, (ch - h) / 2 - dy, w, h);
+      if (options.contain || options.mobileComposition) { ctx.fillStyle = "#090909"; ctx.fillRect(0, 0, cw, ch); }
+      if (options.mobileComposition && ch > cw) {
+        var regionY = ch * 0.30;
+        var regionH = Math.min(cw * 1.25, ch * 0.56);
+        var regionScale = Math.max(cw / iw, regionH / ih);
+        var regionW = iw * regionScale;
+        var imageH = ih * regionScale;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, regionY, cw, regionH);
+        ctx.clip();
+        ctx.drawImage(img, (cw - regionW) / 2, regionY + (regionH - imageH) / 2, regionW, imageH);
+        ctx.restore();
+      } else ctx.drawImage(img, (cw - w) / 2 - dx, (ch - h) / 2 - dy, w, h);
       dessinee = i;
       suivi[cle + "Index"] = i;
       if (typeof options.onFrame === "function") options.onFrame(i);
@@ -914,6 +944,12 @@
     });
     var scrim = frame.querySelector("[data-reveal-scrim]");
     var finale = frame.querySelector("[data-reveal-finale]");
+    var mobileComponent = null;
+    if (mobileFilm) {
+      mobileComponent = document.createElement("div");
+      mobileComponent.className = "reveal__mobile-component";
+      frame.appendChild(mobileComponent);
+    }
     // Le beat manifeste est le seul texte de la séquence : il revient seul sur
     // le fond texture (ses mots s'allument au défilement), puis s'efface quand
     // le carré s'ouvre. Il n'est jamais affiché en même temps que le titre.
@@ -931,6 +967,8 @@
       cle: "atelier",
       maxDecoded: 18,
       maxWidth: 1920,
+      contain: mobileFilm,
+      mobileComposition: mobileFilm,
       onFrame: function (index) { updateCues(index); }
     }) : null;
 
@@ -985,11 +1023,17 @@
       if (index === lastCueIndex && playing === lastCuePlaying) return;
       lastCueIndex = index;
       lastCuePlaying = playing;
+      var componentText = "";
+      var componentDetail = "";
       cueData.forEach(function (data) {
         var cue = data.element;
         var visible = playing && index >= data.start && index <= data.end;
         cue.classList.toggle("is-active", visible);
         if (visible && cue.hasAttribute("data-component-label") && data.circle && data.path) {
+          if (mobileComponent) {
+            componentText = cue.querySelector("text").textContent;
+            componentDetail = cue.querySelector(".component-detail").textContent;
+          }
           var fraction = (index - data.start) / Math.max(1, data.end - data.start);
           var anchor = data.track.length ? interpolateAnchorTrack(data.track, index / frameFps) : {
             x: data.from[0] + (data.to[0] - data.from[0]) * fraction,
@@ -1000,6 +1044,17 @@
           data.path.setAttribute("d", "M" + (data.label[0] + 260) + " " + (data.label[1] + 14) + " H" + (anchor.x - 65) + " L" + anchor.x + " " + anchor.y);
         }
       });
+      if (mobileComponent) {
+        if (mobileComponent.dataset.name !== componentText) {
+          mobileComponent.dataset.name = componentText;
+          mobileComponent.textContent = "";
+          var smallLabel = document.createElement("small");
+          smallLabel.textContent = componentDetail;
+          mobileComponent.appendChild(smallLabel);
+          mobileComponent.appendChild(document.createTextNode(componentText));
+        }
+        mobileComponent.classList.toggle("is-active", Boolean(componentText));
+      }
     }
 
     function clamp(value, min, max) {
@@ -1120,7 +1175,7 @@
 
     function loop(now) {
       raf = 0;
-      if (simpleExperience) { if (frames) frames.dispose(); return; }
+      if (simpleExperience && !mobileFilm) { if (frames) frames.dispose(); return; }
       now = now || window.performance.now();
       var position = readPosition();
       var target = readProgress();
@@ -1136,7 +1191,7 @@
     }
 
     function start() {
-      if (!simpleExperience && !raf) raf = window.requestAnimationFrame(loop);
+      if ((!simpleExperience || mobileFilm) && !raf) raf = window.requestAnimationFrame(loop);
     }
 
     measure();
@@ -1146,9 +1201,10 @@
 
     // Use the same synchronous scroll signal as the hero sequence. A
     // requestAnimationFrame fallback remains for the script without GSAP.
+    var sceneTrigger = null;
     if (hasScrollTrigger) {
       window.gsap.registerPlugin(window.ScrollTrigger);
-      window.ScrollTrigger.create({
+      sceneTrigger = window.ScrollTrigger.create({
         trigger: section,
         start: "top top",
         end: function () { return "+=" + (travel + size.h); },
@@ -1160,11 +1216,12 @@
       window.addEventListener("scroll", function () { if (active) start(); }, { passive: true });
     }
 
-    window.addEventListener("resize", function () {
+    function resizeReveal() {
       measure();
       current = readProgress();
       apply(current, readPosition());
-    });
+    }
+    window.addEventListener("resize", resizeReveal);
 
     if ("IntersectionObserver" in window) {
       var watcher = new IntersectionObserver(function (entries) {
@@ -1177,12 +1234,22 @@
     } else {
       start();
     }
+    return function () {
+      active = false;
+      if (raf) cancelAnimationFrame(raf);
+      if (watcher) watcher.disconnect();
+      if (sceneTrigger) sceneTrigger.kill();
+      if (frames) frames.dispose();
+      window.removeEventListener("resize", resizeReveal);
+      if (mobileComponent) mobileComponent.remove();
+    };
   }
 
   var revealSection = document.querySelector("[data-reveal]");
   // ?reveal=0 : coupe la séquence (utile pour comparer la fluidité du rush)
   var revealEnabled = window.location.search.indexOf("reveal=0") === -1;
-  if (revealSection && !simpleExperience && revealEnabled) initRevealSequence(revealSection);
+  var revealStop = null;
+  if (revealSection && (!simpleExperience || mobileFilm) && revealEnabled) revealStop = initRevealSequence(revealSection);
 
   /* ------------------------------------------------------------------
      Rush 2.5D : la caméra fonce vers la voiture centrale
@@ -1389,12 +1456,28 @@
   // Changing viewport or motion preferences must never leave pinned content
   // hidden. Once simplified, keep native scrolling for this page visit.
   function simplifyExperience() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches && mobileFilm) {
+      mobileFilm = false;
+      reduceMotion = true;
+      html.classList.remove("has-mobile-film");
+      if (mobileHeroTrigger) mobileHeroTrigger.kill();
+      if (introTimeline) introTimeline.kill();
+      if (heroSequence) heroSequence.dispose();
+      if (introSequence) introSequence.dispose();
+      if (revealStop) { revealStop(); revealStop = null; }
+      if (hasScrollTrigger) window.ScrollTrigger.getAll().forEach(function (trigger) { trigger.kill(true); });
+      html.classList.remove("is-intro", "is-locked");
+      if (heroSection) heroSection.querySelector(".hero__title-block").style.opacity = "1";
+      retireIntro();
+    }
     if (simpleExperience) return;
     simpleExperience = true;
+    compactExperience = true;
     html.classList.add("is-simple", "is-compact");
     if (introTimeline) introTimeline.kill();
     if (heroSequence) heroSequence.dispose();
     if (introSequence) introSequence.dispose();
+    if (revealStop) { revealStop(); revealStop = null; }
     if (depthHero) depthHero.disable();
     if (lenis) { lenis.destroy(); window.__noctisLenis = null; }
     if (hasScrollTrigger) window.ScrollTrigger.getAll().forEach(function (trigger) { trigger.kill(true); });
@@ -1404,10 +1487,45 @@
     }
     html.classList.remove("gsap-ready");
     document.querySelectorAll("[data-count]").forEach(function (el) { el.textContent = el.dataset.count; });
+    mobileFilm = !window.matchMedia("(prefers-reduced-motion: reduce)").matches && hasScrollTrigger && Boolean(heroSection);
+    html.classList.toggle("has-mobile-film", mobileFilm);
+    heroSequence = null;
+    if (mobileFilm) {
+      heroScrubLive = true;
+      startHeroSequence();
+      scrubHero(rushProgress());
+      setupMobileHero();
+      if (revealEnabled) revealStop = initRevealSequence(heroSection);
+    }
     revealPage();
   }
   window.matchMedia("(max-width: 1000px), (pointer: coarse)").addEventListener("change", function (event) { if (event.matches) simplifyExperience(); });
   window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", function (event) { if (event.matches) simplifyExperience(); });
+
+  function setupMobileHero() {
+    if (!mobileFilm || !heroSection) return;
+    if (mobileHeroTrigger) mobileHeroTrigger.kill();
+    window.gsap.registerPlugin(window.ScrollTrigger);
+    var mobileTitle = heroSection.querySelector(".hero__title-block");
+    mobileHeroTrigger = window.ScrollTrigger.create({
+      trigger: heroSection,
+      start: "top top",
+      end: function () { return "+=" + (heroSection.querySelector(".hero__sticky").clientHeight || window.innerHeight); },
+      onUpdate: function (self) {
+        scrubHero(self.progress);
+        if (mobileTitle) mobileTitle.style.opacity = String(1 - Math.min(1, self.progress * 3));
+      }
+    });
+  }
+  setupMobileHero();
+  window.addEventListener("resize", function () {
+    if (mobileFilm && heroSequence && heroPortrait !== (innerHeight >= innerWidth)) {
+      heroSequence.dispose();
+      heroSequence = null;
+      startHeroSequence();
+      scrubHero(rushProgress());
+    }
+  });
 
   if (!hasGsap || !hasScrollTrigger || simpleExperience) {
     document.querySelectorAll(".hero__statement").forEach(splitWords);

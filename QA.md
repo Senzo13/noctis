@@ -106,3 +106,26 @@ Tests mobiles émulés, sans validation sur iPhone physique.
 Intro finale : verify-intro.cjs PASS à 1440/390/375, mouvement réduit et sans JS.
 Animation, retour du titre et déverrouillage du scroll vérifiés. Mobile :
 65 images intro et un seul poster atelier, aucune séquence desktop chargée.
+
+
+## Révision 47 — régression mobile corrigée
+
+La validation précédente acceptait à tort un remplacement de l’expérience
+mobile par un visuel fixe et un lecteur natif. Le nouveau contrat vérifié est
+l’enchaînement filmé 0 → 1 → 2 au défilement, avec une composition mobile dédiée.
+
+- `verify-mobile-film.cjs` : PASS à 390×844, 375×667 et 320×700. Gestes
+  tactiles CDP, raccord, avance des deux films, quatre titres, trois composants,
+  retour arrière, sortie du hero, rotation et préférence de mouvement réduit.
+- `verify-mobile-handoff.cjs` : PASS avec les requêtes hero retardées au-delà
+  de la fin d’intro et avec leur échec complet. La dernière image d’intro
+  reste réellement peinte, le scroll se déverrouille, puis le relais attend
+  le dessin de l’image cible. Aucun écran noir.
+- Aucun MP4 chargé en parcours mobile normal ; lecteur natif disponible en
+  mouvement réduit. Aucun débordement ou verrouillage après l’intro.
+- Contrôle visuel à 390 px : image moteur agrandie dans une fenêtre adaptée,
+  titre composant au-dessus. Cas limite 320×568 / PISTONS & BIELLES : titre
+  finit à 130 px, image débute à 170 px, sans chevauchement.
+- Capture navigateur : tools/_shots/mobile-film/browser-admission-v47.png.
+
+Vérifications mobiles émulées sous Chrome, pas de test sur iPhone physique.

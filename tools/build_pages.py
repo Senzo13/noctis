@@ -27,8 +27,8 @@ HEAD = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=46">
-<link rel="stylesheet" href="assets/css/refinement.css?v=46">
+<link rel="stylesheet" href="assets/css/style.css?v=47">
+<link rel="stylesheet" href="assets/css/refinement.css?v=47">
 </head>
 <body>
 
@@ -163,8 +163,8 @@ HEAD = """<!DOCTYPE html>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js" defer></script>
-<script src="assets/js/main.js?v=46" defer></script>
-<script src="assets/js/experience.js?v=46" defer></script>
+<script src="assets/js/main.js?v=47" defer></script>
+<script src="assets/js/experience.js?v=47" defer></script>
 </body>
 </html>
 """

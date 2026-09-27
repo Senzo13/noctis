@@ -152,7 +152,11 @@ async function jump(page, selector) {
       assert.equal(await detail.evaluate(el => el.open), false);
       if (width < 1000) {
         assert.ok(media.some(url => /\/intro-mobile-1080p30[^/]*\//.test(url)), 'Mobile loads its opening video');
-        assert.deepEqual(media.filter(url => !/\/intro-mobile-1080p30[^/]*\//.test(url) && !/\/atelier[^/]*\/001\.webp(?:\?|$)/.test(url)), [], 'Mobile must not load desktop sequences or film before play; a film poster is allowed');
+        assert.equal(await page.locator('html').evaluate(el => el.classList.contains('has-mobile-film')), true, 'Normal mobile keeps the filmed scroll experience');
+        assert.equal(await page.locator('[data-atelier-video]').isVisible(), false, 'Native player is only a fallback');
+        assert.deepEqual(media.filter(url => /\.mp4(?:\?|$)/.test(url)), [], 'Normal scroll experience does not load an MP4 player');
+        assert.ok(media.some(url => /\/hero-mobile-1080p30[^/]*\//.test(url)), 'Mobile loads its portrait hero scrub');
+        assert.deepEqual(media.filter(url => !/\/(?:intro-mobile-1080p30|hero-mobile-1080p30|atelier)[^/]*\//.test(url)), [], 'Phone film uses portrait opening/hero frames and the atelier sequence');
         assert.equal(new Set(media.filter(url => /\/intro-mobile-1080p30[^/]*\//.test(url))).size, 65, 'Mobile opening contains 65 native 30 fps frames');
       } else {
         assert.ok(media.some(url => /\/intro-1080p30[^/]*\//.test(url)), 'Desktop loads its opening video');

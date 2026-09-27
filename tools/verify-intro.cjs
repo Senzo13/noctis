@@ -38,9 +38,11 @@ const out = path.join(__dirname, '_shots', 'intro');
       await page.waitForTimeout(650);
       assert.ok(await page.evaluate(() => scrollY > 0), 'Scroll must unlock after intro');
       if (width < 1000) {
-        const poster = await page.locator('.hero__reveal-poster').evaluate(img => img.src);
-        assert.ok(frames.every(url => url.includes('/intro-mobile-') || url === poster), 'Mobile must not load desktop scrub sequences');
-        assert.equal(await page.evaluate(() => window.__noctisFrames.hero + window.__noctisFrames.atelier), 0);
+        assert.equal(await page.locator('html').evaluate(el => el.classList.contains('has-mobile-film')), true);
+        assert.equal(await page.locator('[data-atelier-video]').isVisible(), false);
+        assert.ok(frames.some(url => url.includes('/hero-mobile-')), 'Mobile loads its scrub sequence after the opening');
+        assert.ok(frames.every(url => /\/(?:intro-mobile-|hero-mobile-|atelier)[^/]*\//.test(url)), 'Phone film uses portrait opening/hero frames and the atelier sequence');
+        assert.ok(await page.evaluate(() => window.__noctisFrames.heroIndex > 38), 'Mobile hero advances with the wheel');
       }
       assert.deepEqual(errors, []);
       console.log(`${width}px: video 0 moves, opening text absent, title returns, scrolling unlocked; ${frames.length} frame requests`);

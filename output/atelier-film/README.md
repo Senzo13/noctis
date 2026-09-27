@@ -19,9 +19,11 @@ la cadence source de 24 images/s. Le cache de décodage conserve au maximum
 18 images par séquence ; les autres restent compressées. ScrollTrigger pilote
 les deux séquences au scroll, avec Lenis et sans second lissage.
 
-Sur mobile et en mouvement réduit, un lecteur natif présente le film entier
-en 16:9, sans recadrer les composants. Le MP4 attend une action de lecture.
-Les légendes se lisent sous le film et la lecture s’arrête hors écran.
+Sur mobile, les trois séquences se suivent au défilement natif : introduction,
+hero, puis atelier. La vidéo atelier occupe un cadre mobile plus haut, centré sur la voiture et
+le moteur ; les titres et noms des composants occupent une zone dédiée.
+En mouvement réduit ou sans JavaScript, le lecteur natif reste disponible ;
+le MP4 attend une action de lecture et les légendes suivent le film.
 
 ## Textes et composants
 
