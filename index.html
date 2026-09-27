@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="assets/img/hero-plate.jpg" media="(min-width: 1001px)">
-<link rel="stylesheet" href="assets/css/style.css?v=47">
-<link rel="stylesheet" href="assets/css/refinement.css?v=47">
+<link rel="preload" as="image" href="assets/img/hero-plate.jpg?v=13" media="(min-width: 1001px)">
+<link rel="stylesheet" href="assets/css/style.css?v=48">
+<link rel="stylesheet" href="assets/css/refinement.css?v=48">
 <noscript>
   <!-- Sans JavaScript la chorégraphie de l'intro n'existe pas : on rend
        directement le hero lisible (titre + bas de page), et la phrase
@@ -152,18 +152,21 @@
       <!-- Le carré vidéo 2 : il s'ouvre au centre et grandit au défilement
            jusqu'à occuper tout l'écran (au-dessus du texte, comme sur le
            site officiel). -->
-      <div class="hero__reveal-frame" data-reveal-frame data-finale-at="0.965" data-frame-fps="24" data-frame-base="assets/frames/atelier-v2-1080p24-20260927/" data-frame-count="241" aria-hidden="true">
-        <img class="hero__reveal-poster" src="assets/frames/atelier-v2-1080p24-20260927/001.webp" alt="">
+      <div class="hero__reveal-frame" data-reveal-frame data-finale-at="0.965" data-frame-fps="24" data-frame-base="assets/frames/atelier-v2-1080p24-20260927/" data-frame-count="241" data-mobile-frame-base="assets/frames/atelier-mobile-1080p24-20260927/" data-mobile-frame-count="241" data-mobile-frame-fps="24" aria-hidden="true">
+        <picture>
+          <source media="(max-width: 1000px) and (orientation: portrait), (pointer: coarse) and (orientation: portrait)" srcset="assets/frames/atelier-mobile-1080p24-20260927/001.webp">
+          <img class="hero__reveal-poster" src="assets/frames/atelier-v2-1080p24-20260927/001.webp" alt="" decoding="async" fetchpriority="low">
+        </picture>
         <canvas class="hero__reveal-frames" data-reveal-frames aria-hidden="true"></canvas>
         <!-- Textes et repères calés sur le film Seedance livré, 10 secondes. -->
         <div class="reveal__captions">
-          <span class="reveal__cue reveal__cue--br" data-cue="0,17"><small>01 / L’atelier</small>Entrez.<br><em>Dans l’atelier.</em></span>
-          <span class="reveal__cue reveal__cue--br" data-cue="18,50"><small>02 / La peinture</small>Révéler<br><em>la profondeur.</em></span>
-          <span class="reveal__cue reveal__cue--tl" data-cue="53,86"><small>03 / Le carbone</small>La matière.<br><em>Le caractère.</em></span>
-          <span class="reveal__cue reveal__cue--tl" data-cue="98,136"><small>04 / La mécanique</small>La précision.<br><em>De l’intérieur.</em></span>
+          <span class="reveal__cue reveal__cue--br" data-cue="0,17" data-mobile-cue="0,56"><small>01 / L’atelier</small>Entrez.<br><em>Dans l’atelier.</em></span>
+          <span class="reveal__cue reveal__cue--br" data-cue="18,50" data-mobile-cue="57,83"><small>02 / La peinture</small>Révéler<br><em>la profondeur.</em></span>
+          <span class="reveal__cue reveal__cue--tl" data-cue="53,86" data-mobile-cue="84,109"><small>03 / Le carbone</small>La matière.<br><em>Le caractère.</em></span>
+          <span class="reveal__cue reveal__cue--tl" data-cue="98,136" data-mobile-cue="110,153"><small>04 / La mécanique</small>La précision.<br><em>De l’intérieur.</em></span>
         </div>
         <!-- Fin de la vidéo 2 : scrim + mot de clôture -->
-        <svg class="component-labels" viewBox="0 0 1672 941" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g data-component-label data-cue="147,165" data-label="145,240" data-anchor-from="945,260" data-anchor-to="1040,205" data-anchor-track="[{&quot;time&quot;:6.1,&quot;x&quot;:945,&quot;y&quot;:260},{&quot;time&quot;:6.5,&quot;x&quot;:1040,&quot;y&quot;:240},{&quot;time&quot;:6.9,&quot;x&quot;:1040,&quot;y&quot;:205}]"><path d="M405 254 H880 L945 260"/><circle cx="945" cy="260" r="4"/><text x="145" y="240">ADMISSION</text><text class="component-detail" x="145" y="270">01 / Le souffle</text></g><g data-component-label data-cue="166,184" data-label="145,520" data-anchor-from="635,593" data-anchor-to="635,420" data-anchor-track="[{&quot;time&quot;:6.9,&quot;x&quot;:635,&quot;y&quot;:593},{&quot;time&quot;:7.3,&quot;x&quot;:635,&quot;y&quot;:514},{&quot;time&quot;:7.7,&quot;x&quot;:635,&quot;y&quot;:420}]"><path d="M405 534 H570 L635 593"/><circle cx="635" cy="593" r="4"/><text x="145" y="520">CULASSES</text><text class="component-detail" x="145" y="550">02 / La précision</text></g><g data-component-label data-cue="185,205" data-label="145,720" data-anchor-from="736,663" data-anchor-to="737,455" data-anchor-track="[{&quot;time&quot;:7.7,&quot;x&quot;:736,&quot;y&quot;:663},{&quot;time&quot;:8.1,&quot;x&quot;:736,&quot;y&quot;:553},{&quot;time&quot;:8.55,&quot;x&quot;:737,&quot;y&quot;:455}]"><path d="M405 734 H671 L736 663"/><circle cx="736" cy="663" r="4"/><text x="145" y="720">PISTONS &amp; BIELLES</text><text class="component-detail" x="145" y="750">03 / Le mouvement</text></g></svg>
+        <svg class="component-labels" viewBox="0 0 1672 941" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g data-component-label data-cue="147,165" data-mobile-cue="154,172" data-label="145,240" data-anchor-from="945,260" data-anchor-to="1040,205" data-anchor-track="[{&quot;time&quot;:6.1,&quot;x&quot;:945,&quot;y&quot;:260},{&quot;time&quot;:6.5,&quot;x&quot;:1040,&quot;y&quot;:240},{&quot;time&quot;:6.9,&quot;x&quot;:1040,&quot;y&quot;:205}]"><path d="M405 254 H880 L945 260"/><circle cx="945" cy="260" r="4"/><text x="145" y="240">ADMISSION</text><text class="component-detail" x="145" y="270">01 / Le souffle</text></g><g data-component-label data-cue="166,184" data-mobile-cue="173,190" data-label="145,520" data-anchor-from="635,593" data-anchor-to="635,420" data-anchor-track="[{&quot;time&quot;:6.9,&quot;x&quot;:635,&quot;y&quot;:593},{&quot;time&quot;:7.3,&quot;x&quot;:635,&quot;y&quot;:514},{&quot;time&quot;:7.7,&quot;x&quot;:635,&quot;y&quot;:420}]"><path d="M405 534 H570 L635 593"/><circle cx="635" cy="593" r="4"/><text x="145" y="520">CULASSES</text><text class="component-detail" x="145" y="550">02 / La précision</text></g><g data-component-label data-cue="185,205" data-mobile-cue="191,215" data-label="145,720" data-anchor-from="736,663" data-anchor-to="737,455" data-anchor-track="[{&quot;time&quot;:7.7,&quot;x&quot;:736,&quot;y&quot;:663},{&quot;time&quot;:8.1,&quot;x&quot;:736,&quot;y&quot;:553},{&quot;time&quot;:8.55,&quot;x&quot;:737,&quot;y&quot;:455}]"><path d="M405 734 H671 L736 663"/><circle cx="736" cy="663" r="4"/><text x="145" y="720">PISTONS &amp; BIELLES</text><text class="component-detail" x="145" y="750">03 / Le mouvement</text></g></svg>
         <div class="reveal__scrim" data-reveal-scrim></div>
         <div class="reveal__finale" data-reveal-finale>
           <span class="reveal__finale-mark">NOCTIS</span>
@@ -176,7 +179,8 @@
     <div class="wrap">
       <span class="label">Dans l’atelier / 10 secondes</span>
       <h2 class="h-section" id="atelier-film-title">La précision.<br><em>De l’intérieur.</em></h2>
-      <video controls playsinline preload="none" poster="assets/frames/atelier-v2-1080p24-20260927/001.webp" aria-label="Film de l’atelier NOCTIS, de la carrosserie au moteur en vue éclatée" data-atelier-video>
+      <video controls playsinline preload="none" aria-label="Film de l’atelier NOCTIS, de la carrosserie au moteur en vue éclatée" data-atelier-video>
+        <source media="(max-width: 1000px) and (orientation: portrait), (pointer: coarse) and (orientation: portrait)" src="assets/video/atelier-mobile-20260927.mp4" type="video/mp4">
         <source src="assets/video/atelier-v2-20260927-063945-2f0e2c.mp4" type="video/mp4">
         <a href="assets/video/atelier-v2-20260927-063945-2f0e2c.mp4">Voir le film de l’atelier</a>
       </video>
@@ -587,7 +591,7 @@
       <span>© <span data-year>2026</span> NOCTIS. Tous droits réservés</span>
       <a class="footer__credit" href="https://nevolabs.ch" target="_blank" rel="noopener">
         <span>POWERED BY</span>
-        <img src="assets/img/nevolabs-white.png" alt="NevoLabs" width="12024" height="2084" loading="lazy" decoding="async">
+        <img src="assets/img/nevolabs-white-512.png" alt="NevoLabs" width="512" height="89" loading="lazy" decoding="async">
       </a>
       <div class="footer__socials">
         <a href="#" target="_blank" rel="noopener" aria-label="LinkedIn NOCTIS"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm7 0h3.8v1.71h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.76V21h-4v-5.6c0-1.34-.03-3.07-1.9-3.07-1.9 0-2.2 1.46-2.2 2.97V21h-4V9Z"/></svg></a>
@@ -602,9 +606,9 @@
 <script src="assets/vendor/gsap.min.js?v=13" defer></script>
 <script src="assets/vendor/ScrollTrigger.min.js?v=13" defer></script>
 <script src="assets/vendor/lenis.min.js?v=34" defer></script>
-<script src="assets/js/main.js?v=47" defer></script>
-<script src="assets/vendor/lucide-icons.min.js?v=47" defer></script>
-<script src="assets/js/experience.js?v=47" defer></script>
-<script src="assets/js/atelier-film.js?v=47" defer></script>
+<script src="assets/js/main.js?v=48" defer></script>
+<script src="assets/vendor/lucide-icons.min.js?v=48" defer></script>
+<script src="assets/js/experience.js?v=48" defer></script>
+<script src="assets/js/atelier-film.js?v=48" defer></script>
 </body>
 </html>

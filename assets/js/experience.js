@@ -51,34 +51,49 @@
     let index = 0;
     let scheduled = false;
     let pinned = null;
-    const positions = () => cards.map(card => card.offsetLeft - cards[0].offsetLeft);
+    let geometry = { offsets: [], points: [], max: 0, width: 0 };
+    const measure = () => {
+      const offsets = cards.map(card => card.offsetLeft);
+      const width = rail.clientWidth;
+      geometry = {
+        offsets,
+        points: offsets.map(offset => offset - offsets[0]),
+        max: Math.max(0, rail.scrollWidth - (pinned ? rail.parentElement.clientWidth : width)),
+        width
+      };
+    };
+    const renderControls = (atStart, atEnd) => {
+      if (previous.disabled !== atStart) previous.disabled = atStart;
+      if (next.disabled !== atEnd) next.disabled = atEnd;
+      const text = `${String(index + 1).padStart(2, '0')} / ${String(cards.length).padStart(2, '0')}`;
+      if (counter.textContent !== text) counter.textContent = text;
+    };
     const update = () => {
       scheduled = false;
       if (pinned) {
         const offset = -Number(window.gsap.getProperty(rail, 'x'));
-        index = cards.reduce((best, card, i) => Math.abs(card.offsetLeft - offset) < Math.abs(cards[best].offsetLeft - offset) ? i : best, 0);
-        previous.disabled = pinned.progress <= .001;
-        next.disabled = pinned.progress >= .999;
-        if (next.disabled) index = cards.length - 1;
-        counter.textContent = `${String(index + 1).padStart(2, '0')} / ${String(cards.length).padStart(2, '0')}`;
+        const points = geometry.offsets;
+        index = points.reduce((best, point, i) => Math.abs(point - offset) < Math.abs(points[best] - offset) ? i : best, 0);
+        const atEnd = pinned.progress >= .999;
+        if (atEnd) index = cards.length - 1;
+        renderControls(pinned.progress <= .001, atEnd);
         return;
       }
-      const points = positions();
+      const points = geometry.points;
       index = points.reduce((best, point, i) => Math.abs(point - rail.scrollLeft) < Math.abs(points[best] - rail.scrollLeft) ? i : best, 0);
-      const atEnd = rail.scrollLeft >= rail.scrollWidth - rail.clientWidth - 3;
+      const atEnd = rail.scrollLeft >= geometry.max - 3;
       if (atEnd) index = cards.length - 1;
-      previous.disabled = rail.scrollLeft <= 3;
-      next.disabled = atEnd;
-      counter.textContent = `${String(index + 1).padStart(2, '0')} / ${String(cards.length).padStart(2, '0')}`;
+      renderControls(rail.scrollLeft <= 3, atEnd);
     };
     const move = delta => {
       if (!pinned) {
-        rail.scrollTo({ left: rail.scrollLeft + delta * (positions()[1] || rail.clientWidth), behavior: motion() });
+        rail.scrollTo({ left: rail.scrollLeft + delta * (geometry.points[1] || geometry.width), behavior: motion() });
         return;
       }
       const offset = -Number(window.gsap.getProperty(rail, 'x'));
-      const max = rail.scrollWidth - rail.parentElement.clientWidth;
-      const stops = [0, ...cards.map(card => Math.min(max, card.offsetLeft)), max];
+      const max = geometry.max;
+      if (max <= 0) return;
+      const stops = [0, ...geometry.offsets.map(point => Math.min(max, point)), max];
       const target = delta > 0 ? stops.find(x => x > offset + 8) ?? max : stops.findLast(x => x < offset - 8) ?? 0;
       const y = pinned.start + target / max * (pinned.end - pinned.start);
       if (window.__noctisLenis) window.__noctisLenis.scrollTo(y, { duration: .8 });
@@ -90,8 +105,9 @@
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); move(event.key === 'ArrowRight' ? 1 : -1); }
     });
     rail.addEventListener('scroll', () => { if (!scheduled) { scheduled = true; requestAnimationFrame(update); } }, { passive: true });
-    new ResizeObserver(update).observe(rail);
-    update();
+    const refresh = () => { measure(); update(); };
+    new ResizeObserver(refresh).observe(rail);
+    refresh();
 
     if (window.gsap && window.ScrollTrigger) {
       window.gsap.matchMedia().add('(min-width: 1001px) and (min-height: 601px) and (pointer: fine) and (prefers-reduced-motion: no-preference)', () => {
@@ -120,11 +136,11 @@
             id: `horizontal-${section.id}`, trigger: section, pin: true,
             start: 'top top', end: () => `+=${Math.round(distance() * 1.15)}`,
             scrub: .45, invalidateOnRefresh: true, anticipatePin: 1,
-            onUpdate: update, onRefresh: update
+            onUpdate: update, onRefresh: refresh
           }
         });
         pinned = tween.scrollTrigger;
-        update();
+        refresh();
         return () => {
           pinned = null;
           tween.scrollTrigger?.kill(true);
@@ -134,7 +150,7 @@
           stage.remove();
           section.classList.remove('is-scroll-pinned');
           rail.scrollLeft = 0;
-          update();
+          refresh();
         };
       });
     }

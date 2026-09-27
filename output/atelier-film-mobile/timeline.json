@@ -1,0 +1,20 @@
+{
+  "duration": 10.041667,
+  "webFps": 24,
+  "width": 1080,
+  "height": 1920,
+  "frameCount": 241,
+  "finaleAt": 0.965,
+  "cues": [
+    {"start": 0, "end": 2.375, "label": "01 / L’atelier", "text": "Entrez. Dans l’atelier."},
+    {"start": 2.375, "end": 3.5, "label": "02 / La peinture", "text": "Révéler la profondeur."},
+    {"start": 3.5, "end": 4.583333333, "label": "03 / Le carbone", "text": "La matière. Le caractère."},
+    {"start": 4.583333333, "end": 6.416666666, "label": "04 / La mécanique", "text": "La précision. De l’intérieur."}
+  ],
+  "components": [
+    {"start": 6.416666666, "end": 7.208333333, "name": "ADMISSION", "text": "ADMISSION — Le souffle"},
+    {"start": 7.208333333, "end": 7.958333333, "name": "CULASSES", "text": "CULASSES — La précision"},
+    {"start": 7.958333333, "end": 9, "name": "PISTONS & BIELLES", "text": "PISTONS & BIELLES — Le mouvement"}
+  ],
+  "review": "Repères vérifiés sur le film livré. Lecture progressive des composants sur un plan d’ensemble du moteur, sans prétendre à un gros plan exclusif de chaque pièce."
+}

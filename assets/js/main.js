@@ -622,6 +622,11 @@
     var decoding = new Uint8Array(count);
     var decodeJobs = 0;
     var decodedLimit = options.maxDecoded || count;
+    var direction = 1, velocity = 0, targetAt = 0, decodeDuration = 18;
+    var lastDecodeTarget = -1;
+    var drawPending = 0;
+    var cameraDirty = false;
+    var fetchControllers = new Map();
     var pretes = new Uint8Array(count);
     var charge = false;
     var dessinee = -1;
@@ -631,7 +636,7 @@
     var mort = false;
     var queue = [];
     var loading = 0;
-    var concurrency = 6;
+    var concurrency = cle === "intro" ? 4 : 3;
     // caméra de l'intro, appliquée dans le dessin (voir peindre/setCamera)
     var camera = { zoom: 1, panX: 0, panY: 0 };
 
@@ -646,17 +651,20 @@
       requested[i] = 1;
       loading += 1;
       if (bounded) {
-        fetch(fichier(i)).then(function (response) {
+        var controller = new AbortController();
+        fetchControllers.set(i, controller);
+        fetch(fichier(i), { signal: controller.signal, cache: /\d{8}/.test(base) ? "force-cache" : "default" }).then(function (response) {
           if (!response.ok) throw new Error("Frame " + response.status);
           return response.blob();
         }).then(function (blob) {
           loading -= 1;
+          fetchControllers.delete(i);
           if (mort) return;
           blobs[i] = blob;
           suivi[cle] = (suivi[cle] || 0) + 1;
           decodeNearby();
           pump();
-        }).catch(function () { loading -= 1; pump(); });
+        }).catch(function () { loading -= 1; fetchControllers.delete(i); pump(); });
         return;
       }
       var img = new Image();
@@ -666,13 +674,8 @@
         if (mort) return;
         pretes[i] = 1;
         suivi[cle] = (suivi[cle] || 0) + 1;
-        if (!premiere) {
-          premiere = true;
-          canvas.classList.add("is-ready");
-          if (typeof options.onFirstReady === "function") options.onFirstReady();
-        }
         var nearest = plusProche(cible);
-        if (nearest >= 0 && nearest !== dessinee) peindre(nearest);
+        if (nearest >= 0 && (nearest !== dessinee || cameraDirty)) peindre(nearest);
         pump();
       }
       function failed() { loading -= 1; pretes[i] = 0; pump(); }
@@ -696,34 +699,48 @@
 
     // Full-HD frames stay compressed outside a small seek window. Keeping
     // 241 decoded 1080p frames would consume almost 2 GB for this film alone.
+    function desiredDecodeWindow() {
+      var lead = Math.min(decodedLimit - 3, Math.max(1, Math.ceil(Math.abs(velocity) * decodeDuration * 1.5)));
+      var predicted = Math.max(0, Math.min(count - 1, cible + direction * lead));
+      var wanted = [];
+      function candidate(i) {
+        if (i >= 0 && i < count && wanted.indexOf(i) === -1) wanted.push(i);
+      }
+      candidate(cible);
+      candidate(predicted);
+      // Decode ahead of the current travel direction, allowing for measured
+      // decode latency. Frames already passed are lower priority.
+      for (var distance = 1; distance < decodedLimit - 3; distance += 1) {
+        candidate(cible + direction * distance);
+        if (distance < 3) candidate(cible - direction * distance);
+      }
+      return wanted;
+    }
+
     function decodeNearby() {
       if (!bounded || mort) return;
-      var radius = Math.floor((decodedLimit - 1) / 2);
-      var candidates = [];
-      for (var distance = 0; distance <= radius; distance += 1) {
-        [cible + distance, cible - distance].forEach(function (i) {
-          if (i >= 0 && i < count && blobs[i] && !images[i] && !decoding[i] && candidates.indexOf(i) === -1) candidates.push(i);
-        });
-      }
+      var candidates = desiredDecodeWindow().filter(function (i) { return blobs[i] && !images[i] && !decoding[i]; });
       while (decodeJobs < 2 && candidates.length) {
         (function (i) {
           decoding[i] = 1;
           decodeJobs += 1;
+          var started = performance.now();
           createImageBitmap(blobs[i]).then(function (bitmap) {
+            decodeDuration = decodeDuration * 0.8 + (performance.now() - started) * 0.2;
             decoding[i] = 0;
             decodeJobs -= 1;
-            if (mort || Math.abs(i - cible) > radius + 1) bitmap.close();
+            if (mort || Math.abs(i - cible) > decodedLimit * 2) bitmap.close();
             else {
               images[i] = bitmap;
               pretes[i] = 1;
-              if (!premiere) {
-                premiere = true;
-                canvas.classList.add("is-ready");
-                if (typeof options.onFirstReady === "function") options.onFirstReady();
-              }
               var cached = [];
               for (var n = 0; n < count; n += 1) if (images[n]) cached.push(n);
-              cached.sort(function (a, b) { return Math.abs(b - cible) - Math.abs(a - cible); });
+              var wanted = desiredDecodeWindow();
+              function score(index) {
+                var rank = wanted.indexOf(index);
+                return rank < 0 ? count + Math.abs(index - cible) : rank;
+              }
+              cached.sort(function (a, b) { return score(b) - score(a); });
               while (cached.length > decodedLimit) {
                 var old = cached.shift();
                 images[old].close();
@@ -731,8 +748,7 @@
                 pretes[old] = 0;
               }
               suivi[cle + "Decoded"] = cached.length;
-              var nearest = plusProche(cible);
-              if (nearest >= 0 && nearest !== dessinee) peindre(nearest);
+              queueDraw();
             }
             decodeNearby();
           }, function () { decoding[i] = 0; decodeJobs -= 1; blobs[i] = null; decodeNearby(); });
@@ -740,11 +756,20 @@
       }
     }
 
+    function queueDraw() {
+      if (drawPending || mort) return;
+      drawPending = requestAnimationFrame(function () {
+        drawPending = 0;
+        var nearest = plusProche(cible);
+        if (nearest >= 0 && (nearest !== dessinee || cameraDirty)) peindre(nearest);
+      });
+    }
+
     function prioritize(index) {
       if (!charge || mort || pretes[index]) return;
       var nearby = [];
-      for (var distance = 0; distance <= 3; distance += 1) {
-        [index + distance, index - distance].forEach(function (i) {
+      for (var distance = 0; distance < decodedLimit; distance += 1) {
+        [index + direction * distance, index - direction * Math.min(distance, 2)].forEach(function (i) {
           if (i >= 0 && i < count && !requested[i] && nearby.indexOf(i) === -1) nearby.push(i);
         });
       }
@@ -777,8 +802,11 @@
       var largeur = canvas.clientWidth || window.innerWidth;
       var hauteur = canvas.clientHeight || window.innerHeight;
       var scale = Math.min(dpr, (options.maxWidth || 1280) / largeur);
-      canvas.width = Math.round(largeur * scale);
-      canvas.height = Math.round(hauteur * scale);
+      var width = Math.round(largeur * scale);
+      var height = Math.round(hauteur * scale);
+      if (canvas.width === width && canvas.height === height) return;
+      canvas.width = width;
+      canvas.height = height;
       if (dessinee >= 0) peindre(dessinee);
     }
 
@@ -819,6 +847,12 @@
         ctx.restore();
       } else ctx.drawImage(img, (cw - w) / 2 - dx, (ch - h) / 2 - dy, w, h);
       dessinee = i;
+      cameraDirty = false;
+      if (!premiere) {
+        premiere = true;
+        canvas.classList.add("is-ready");
+        if (typeof options.onFirstReady === "function") options.onFirstReady();
+      }
       suivi[cle + "Index"] = i;
       if (typeof options.onFrame === "function") options.onFrame(i);
     }
@@ -835,12 +869,22 @@
     // i = index d'image, borné à la séquence
     function setIndex(i) {
       if (mort) return;
-      cible = i < 0 ? 0 : i > count - 1 ? count - 1 : Math.round(i);
-      if (bounded) decodeNearby();
+      var next = i < 0 ? 0 : i > count - 1 ? count - 1 : Math.round(i);
+      if (next !== cible) {
+        var now = performance.now(), elapsed = now - targetAt, step = next - cible;
+        direction = step > 0 ? 1 : -1;
+        velocity = elapsed > 0 && elapsed < 150 ? Math.max(-0.5, Math.min(0.5, step / elapsed)) : 0;
+        targetAt = now;
+        cible = next;
+      }
+      if (bounded && lastDecodeTarget !== cible) { lastDecodeTarget = cible; decodeNearby(); }
       if (cible === dessinee) return;
       prioritize(cible);
       var proche = plusProche(cible);
-      if (proche >= 0 && proche !== dessinee) peindre(proche);
+      if (proche >= 0 && proche !== dessinee) {
+        if (cle === "intro") queueDraw();
+        else peindre(proche);
+      }
     }
 
     // p = progression 0 → 1 de la séquence
@@ -860,7 +904,8 @@
       camera.zoom = zoom;
       camera.panX = panX;
       camera.panY = panY;
-      if (dessinee >= 0) peindre(dessinee);
+      cameraDirty = true;
+      if (dessinee >= 0) queueDraw();
     }
 
     /* Libère les images de la séquence : l'intro n'a plus besoin d'être en
@@ -869,6 +914,9 @@
     function dispose() {
       if (mort) return;
       mort = true;
+      if (drawPending) cancelAnimationFrame(drawPending);
+      fetchControllers.forEach(function (controller) { controller.abort(); });
+      fetchControllers.clear();
       suivi[cle + "Decoded"] = 0;
       queue.length = 0;
       window.removeEventListener("resize", resize);
@@ -918,11 +966,17 @@
     var framesCanvas = section.querySelector("[data-reveal-frames]");
     var texture = section.querySelector("[data-reveal-texture]");
     var cues = Array.prototype.slice.call(frame.querySelectorAll(".reveal__cue, [data-component-label]"));
-    var frameFps = Number(frame.dataset.frameFps) || 12;
+    var portraitFilm = mobileFilm && window.innerHeight >= window.innerWidth && Boolean(frame.dataset.mobileFrameBase);
+    var frameBase = portraitFilm ? frame.dataset.mobileFrameBase : frame.dataset.frameBase;
+    var frameCount = Number(portraitFilm ? frame.dataset.mobileFrameCount : frame.dataset.frameCount) || 120;
+    var poster = frame.querySelector(".hero__reveal-poster");
+    if (poster) poster.src = frameBase + "001.webp";
+    frame.classList.toggle("has-portrait-source", portraitFilm);
+    var frameFps = Number(portraitFilm ? frame.dataset.mobileFrameFps : frame.dataset.frameFps) || 24;
     if (!Number.isFinite(frameFps) || frameFps <= 0) frameFps = 12;
     // Parse annotations once; the scroll loop only interpolates their coordinates.
     var cueData = cues.map(function (cue) {
-      var range = (cue.getAttribute("data-cue") || "0,-1").split(",").map(Number);
+      var range = ((portraitFilm && cue.getAttribute("data-mobile-cue")) || cue.getAttribute("data-cue") || "0,-1").split(",").map(Number);
       var track = [];
       if (cue.dataset.anchorTrack) {
         try {
@@ -962,13 +1016,12 @@
     // avec l'ouverture, et repartent en arrière quand il se referme.
     var frames = framesCanvas ? initFrameSequence({
       canvas: framesCanvas,
-      base: frame.dataset.frameBase || "assets/frames/atelier/",
-      count: Number(frame.dataset.frameCount) || 120,
+      base: frameBase || "assets/frames/atelier/",
+      count: frameCount,
       cle: "atelier",
       maxDecoded: 18,
-      maxWidth: 1920,
-      contain: mobileFilm,
-      mobileComposition: mobileFilm,
+      maxWidth: portraitFilm ? 1080 : 1920,
+      contain: false,
       onFrame: function (index) { updateCues(index); }
     }) : null;
 
@@ -1033,6 +1086,7 @@
           if (mobileComponent) {
             componentText = cue.querySelector("text").textContent;
             componentDetail = cue.querySelector(".component-detail").textContent;
+            return; // Mobile uses text labels; invisible SVG tracks need no repaint.
           }
           var fraction = (index - data.start) / Math.max(1, data.end - data.start);
           var anchor = data.track.length ? interpolateAnchorTrack(data.track, index / frameFps) : {
@@ -1524,6 +1578,8 @@
       heroSequence = null;
       startHeroSequence();
       scrubHero(rushProgress());
+      if (revealStop) { revealStop(); revealStop = null; }
+      if (revealEnabled) revealStop = initRevealSequence(heroSection);
     }
   });
 

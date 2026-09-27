@@ -1,0 +1,24 @@
+RÉGLAGES DE SORTIE — À CONFIGURER HORS DU PROMPT
+
+Format : portrait 9:16
+Résolution souhaitée : 1080 × 1920
+Durée : 10 secondes
+Cadence : 24 images/seconde si le modèle propose ce choix ; sinon cadence native.
+Audio : désactivé
+Export : meilleure qualité disponible, sans watermark si disponible.
+Le MP4 convient pour me transmettre le résultat. Un original ProRes convient aussi.
+
+MODE
+Utiliser le mode à image de début et image de fin si disponible pour le modèle choisi.
+START : 01-START-mobile.png
+END : 02-END-mobile.png
+
+RÉFÉRENCES OPTIONNELLES
+03-REFERENCE-moteur-mobile.png : apparence mécanique, pas une troisième keyframe obligatoire.
+04-REFERENCE-film-desktop.mp4 : identité et rythme du film déjà validé.
+Joindre ces références seulement si le mode choisi propose des emplacements dédiés.
+Ne pas remplacer START ou END par la référence de détail.
+
+Les images générées sont en 941 × 1672 pixels, soit un cadrage quasi exact 9:16.
+Ce sont les images d’entrée ; la résolution 1080 × 1920 est le réglage vidéo de sortie.
+Ne pas étirer ou recadrer agressivement les images pour remplir les emplacements.

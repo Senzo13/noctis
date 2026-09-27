@@ -6,6 +6,15 @@ Site statique multi-pages, en français, construit à partir de la maquette four
 Thème sombre éditorial, typographie serif pour les titres, animations au défilement
 (GSAP + ScrollTrigger + Lenis), vidéos pilotées par le scroll.
 
+**État actuel (révision 48)** : les vidéos 0 et 1 utilisent leurs images natives
+à 30 images/s. Le film atelier possède deux montages distincts à 24 images/s :
+1920×1080 sur ordinateur et 1080×1920 en portrait mobile (241 images chacun).
+Les séquences WebP qualité 90 utilisent un cache borné à 18 images décodées,
+avec anticipation dans le sens du scroll. La préférence de mouvement réduit
+donne accès à un lecteur vidéo volontaire. Les sections historiques ci-dessous
+décrivent aussi des étapes antérieures ; les vérifications actuelles sont dans
+`QA.md`, et le montage mobile dans `output/atelier-film-mobile/timeline.json`.
+
 ---
 
 ## 1. Lancer le site en local
@@ -15,11 +24,15 @@ animations ne se chargent pas correctement en `file://`).
 
 ```powershell
 cd C:\dev\noctis
-python -m http.server 5173
-# puis ouvrir http://localhost:5173
+python tools/serve.py 5180
+# puis ouvrir http://127.0.0.1:5180
 ```
 
 Alternative : `npx serve .`
+
+Le serveur de développement garde les médias datés en cache ; HTML, CSS et JS
+sont rechargés immédiatement. Une nouvelle extraction doit utiliser un nouveau
+nom de dossier (ne pas écraser des images dont le chemin est déjà en cache).
 
 ## 2. Déployer
 

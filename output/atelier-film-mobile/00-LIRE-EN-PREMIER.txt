@@ -1,0 +1,20 @@
+NOCTIS — VIDÉO 2 MOBILE
+
+1. Charger 01-START-mobile.png comme image de début.
+2. Charger 02-END-mobile.png comme image de fin.
+3. Copier le contenu de 05-PROMPT-A-COLLER.txt dans le prompt.
+4. Régler 9:16, 10 secondes et 1080p selon 06-REGLAGES-OUTPUT.txt.
+5. Générer puis me transmettre la vidéo pour l’intégration et le calage réel des textes.
+
+03 est une référence facultative pour le moteur. 04 est le film desktop approuvé.
+Les timings du prompt sont une direction de réalisation : le générateur peut les
+interpréter. Je recalibrerai les textes sur le résultat réel avant intégration.
+
+Le cadre vertical a été recomposé : voiture entière au début, voiture et ensemble
+mécanique complets à la fin. Au cours des gros plans, le composant inspecté doit
+rester identifiable et laisser de l’espace pour la typographie du site.
+Aucun texte ne doit être généré dans les images ou dans le film.
+
+L’aperçu 07-APERCU.html permet de comparer les trois images et de lire le séquençage.
+Les fichiers sont dans ce dossier, sans archive. Les images ont été générées avec
+l’outil imagegen intégré à partir des références NOCTIS existantes.

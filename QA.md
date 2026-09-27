@@ -129,3 +129,39 @@ l’enchaînement filmé 0 → 1 → 2 au défilement, avec une composition mobi
 - Capture navigateur : tools/_shots/mobile-film/browser-admission-v47.png.
 
 Vérifications mobiles émulées sous Chrome, pas de test sur iPhone physique.
+
+## Révision 48 — portrait natif et performances
+
+- Film mobile livré : HEVC SDR BT.709, 1080×1920, 24fps, 10,041667s.
+  Extraction directe de 241 WebP qualité 90 (30,14 Mo), sans réduction de
+  résolution ou de cadence ; fallback H.264 CRF18 faststart (10,07 Mo).
+- `verify-mobile-film.cjs` : PASS 390×844, 375×667, 320×700. Source portrait
+  exclusive avant rotation (aucune image atelier desktop téléchargée),
+  couverture du canvas sans fenêtre noire, vrais gestes tactiles, quatre
+  titres et trois composants calés sur le montage portrait, avance/recul,
+  rotation avec le montage desktop, sortie du hero et mouvement réduit.
+- Rotation paysage contrôlée avec header visible : surtitre à 88px, soit
+  18,4px sous le header. Assertion de non-recouvrement ajoutée.
+- `verify-intro.cjs` : PASS 1440/390/375, mouvement du film 0, relais du
+  hero, retour du titre, déverrouillage, mouvement réduit et sans JavaScript.
+- `verify-mobile-handoff.cjs` : PASS avec chargement hero retardé puis
+  complètement échoué ; dernier plan d’intro conservé, aucun écran noir.
+- `verify-atelier-film.cjs --desktop` : PASS 1440px, quatre titres, trois
+  repères suivis, retour arrière et finale. `verify-scroll.cjs` : PASS à
+  1440/1366px, rails, boutons, sortie et nettoyage au passage mobile.
+- Benchmark contrôlé après chargement des fichiers compressés, mêmes images
+  portrait et même cadence 24fps, Chrome
+  avec CPU ralenti ×4 : retard mobile médian 3 → 1 image ; p95 5 → 3 ;
+  maximum 7 → 4. Desktop : médiane/p95 restent à 0, maximum 1 image.
+  Cache limité à 18 images décodées, aucun décodage après stabilisation.
+  Ces mesures locales caractérisent le scénario testé, pas tous les téléphones.
+- Rails : sur 90 mises à jour, lectures `offsetLeft` 540 → 0 et mutations
+  du compteur 90 → 2. Géométrie recalculée au resize/refresh.
+- Preload hero aligné sur l’URL réelle : suppression d’un second téléchargement
+  de 249820 octets. Logo officiel redimensionné de 12024×2084 à 512×89 pour
+  le footer : 245979 → 17860 octets, source originale conservée.
+- Cache HTTP des médias datés dans le serveur local ; fetch `force-cache`
+  uniquement pour les séquences datées. HTML/CSS/JS locaux non mis en cache.
+
+Captures : `tools/_shots/mobile-film/390-component-2.png` et captures de
+chaque viewport. Tests mobiles émulés sous Chrome ; pas d’iPhone physique.

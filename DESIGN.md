@@ -104,3 +104,21 @@ Le film atelier est recadré au centre dans une fenêtre mobile plus haute ;
 les titres narratifs et noms des composants sont composés séparément, pour
 préserver leur lisibilité et la vue du moteur. Les contrôles du lecteur natif
 sont réservés à la préférence de mouvement réduit et à l’absence de JavaScript.
+
+## Révision 48 — film portrait natif et coût du défilement
+
+La vidéo mobile livrée remplace le recadrage du film paysage. Elle remplit le
+canvas, en conservant sa définition source 1080×1920 et ses 241 images à 24fps.
+La rotation en paysage sélectionne le film desktop et ses propres repères.
+Les titres et composants suivent les plans réels du montage portrait : arrivée,
+peinture, carbone, mécanique, puis lecture progressive du moteur éclaté.
+Un dégradé supérieur léger conserve la lisibilité des textes ; aucune fenêtre
+noire n’est réservée au-dessus ou au-dessous du film.
+
+Intention → conserver la réponse au geste sans sacrifier les médias.
+Moteur → même ScrollTrigger et canvas, avec anticipation du décodage dans le
+sens du scroll, cache mémoire borné et dessins asynchrones regroupés sur RAF.
+Les cadences sources restent 30fps (0/1) et 24fps (2), sans fausse interpolation.
+Les rails horizontaux mettent leur géométrie en cache et ne modifient leurs
+compteurs que lorsque le chapitre change. Le logo officiel est livré à une
+taille adaptée au footer, sans changer son dessin.

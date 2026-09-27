@@ -28,10 +28,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
     def end_headers(self) -> None:
-        # aucun cache : on travaille sur les fichiers en direct
-        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Expires", "0")
+        # Versioned media never change in place. Reuse their encoded bytes on
+        # resize, repeat visits and reverse scroll; code still updates instantly.
+        resource = self.path.split("?", 1)[0]
+        versioned_media = bool(re.match(r"/assets/(?:frames/[^/]*\d{8}[^/]*/|video/[^/]*\d{8})", resource))
+        if versioned_media:
+            self.send_header("Cache-Control", "public, max-age=31536000, immutable")
+        elif resource.startswith(("/assets/img/", "/assets/vendor/")):
+            self.send_header("Cache-Control", "public, max-age=0, must-revalidate")
+        else:
+            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
         self.send_header("Accept-Ranges", "bytes")
         super().end_headers()
 

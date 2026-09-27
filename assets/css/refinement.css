@@ -410,11 +410,14 @@ html.is-intro.is-simple .hero__title-block { opacity: 0; }
   .craft-controls { margin-top: 2rem; }
 }
 
-/* Keep the complete 16:9 film on phones, without cropping its engine parts. */
+/* Native playback preserves each film's framing when motion is reduced. */
 .atelier-film-native { display: none; }
 .is-simple .atelier-film-native { display: block; padding-block: 3rem; }
 .atelier-film-native h2 { margin-block: 1rem 1.75rem; }
 .atelier-film-native video { display: block; width: 100%; aspect-ratio: 16/9; background: #090909; }
+@media (max-width: 1000px) and (orientation: portrait), (pointer: coarse) and (orientation: portrait) {
+  .atelier-film-native video { aspect-ratio: 9/16; max-height: 80svh; object-fit: contain; }
+}
 .atelier-film-native__caption { margin: 1rem 0 0; min-height: 3em; color: var(--muted); font-size: .85rem; line-height: 1.5; }
 @media (max-width: 1000px), (pointer: coarse), (prefers-reduced-motion: reduce) {
   .atelier-film-native { display: block; padding-block: 3rem; }
@@ -435,7 +438,11 @@ html.has-mobile-film .hero__title-block { align-self: start; position: relative;
 html.has-mobile-film .hero__scrim { background: linear-gradient(180deg,#0009 0%,transparent 45%,#0002 100%); }
 html.has-mobile-film .hero__reveal-texture,
 html.has-mobile-film .hero__reveal-frame { display: block; }
-html.has-mobile-film .hero__reveal-poster { object-fit: contain; background: #090909; }
+html.has-mobile-film .hero__reveal-poster { object-fit: cover; background: #090909; }
+html.has-mobile-film .hero__reveal-frame::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #0008, #0003 30%, transparent 48%); }
+html.has-mobile-film .reveal__captions,
+html.has-mobile-film .reveal__mobile-component,
+html.has-mobile-film .reveal__finale { z-index: 2; }
 html.has-mobile-film .hero__reveal-frames { display: block; opacity: 0; }
 html.has-mobile-film .hero__reveal-frames.is-ready { opacity: 1; transition: none; }
 html.has-mobile-film .atelier-film-native { display: none; }
@@ -448,6 +455,10 @@ html.has-mobile-film .component-labels { display: none; }
 .reveal__mobile-component small { display: block; margin-bottom: .8rem; color: #f2f1ed; font: 500 .55rem/1.5 var(--font-body); letter-spacing: .18em; text-transform: uppercase; }
 html.has-mobile-film .reveal__finale-mark { font-size: clamp(4rem,19vw,9rem); }
 html.has-mobile-film .reveal__finale-sub { font-size: .55rem; letter-spacing: .1em; padding-inline: var(--pad); }
+@media (orientation: landscape) {
+  html.has-mobile-film .reveal__cue,
+  html.has-mobile-film .reveal__mobile-component { top: max(16%, calc(var(--header-h) + 1rem)); }
+}
 @media (max-width: 360px) {
   .reveal__mobile-component { top: 14%; font-size: 1.8rem; }
   .reveal__mobile-component small { margin-bottom: .5rem; }
