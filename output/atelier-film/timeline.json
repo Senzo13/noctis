@@ -1,0 +1,165 @@
+{
+  "duration": 10,
+  "webFps": 24,
+  "finaleAt": 0.965,
+  "componentViewBox": [
+    0,
+    0,
+    1672,
+    941
+  ],
+  "cues": [
+    {
+      "start": 0,
+      "end": 0.75,
+      "placement": "br",
+      "label": "01 / L’atelier",
+      "line1": "Entrez.",
+      "line2": "Dans l’atelier."
+    },
+    {
+      "start": 0.75,
+      "end": 2.1,
+      "placement": "br",
+      "label": "02 / La peinture",
+      "line1": "Révéler",
+      "line2": "la profondeur."
+    },
+    {
+      "start": 2.2,
+      "end": 3.6,
+      "placement": "tl",
+      "label": "03 / Le carbone",
+      "line1": "La matière.",
+      "line2": "Le caractère."
+    },
+    {
+      "start": 4.05,
+      "end": 5.7,
+      "placement": "tl",
+      "label": "04 / La mécanique",
+      "line1": "La précision.",
+      "line2": "De l’intérieur."
+    }
+  ],
+  "components": [
+    {
+      "start": 6.1,
+      "end": 6.9,
+      "name": "ADMISSION",
+      "detail": "01 / Le souffle",
+      "label": [
+        145,
+        240
+      ],
+      "anchorFrom": [
+        945,
+        260
+      ],
+      "anchorTo": [
+        1040,
+        205
+      ],
+      "anchors": [
+        {
+          "time": 6.1,
+          "x": 945,
+          "y": 260
+        },
+        {
+          "time": 6.5,
+          "x": 1040,
+          "y": 240
+        },
+        {
+          "time": 6.9,
+          "x": 1040,
+          "y": 205
+        }
+      ]
+    },
+    {
+      "start": 6.9,
+      "end": 7.7,
+      "name": "CULASSES",
+      "detail": "02 / La précision",
+      "label": [
+        145,
+        520
+      ],
+      "anchorFrom": [
+        635,
+        593
+      ],
+      "anchorTo": [
+        635,
+        420
+      ],
+      "anchors": [
+        {
+          "time": 6.9,
+          "x": 635,
+          "y": 593
+        },
+        {
+          "time": 7.3,
+          "x": 635,
+          "y": 514
+        },
+        {
+          "time": 7.7,
+          "x": 635,
+          "y": 420
+        }
+      ]
+    },
+    {
+      "start": 7.7,
+      "end": 8.55,
+      "name": "PISTONS & BIELLES",
+      "detail": "03 / Le mouvement",
+      "label": [
+        145,
+        720
+      ],
+      "anchorFrom": [
+        736,
+        663
+      ],
+      "anchorTo": [
+        737,
+        455
+      ],
+      "anchors": [
+        {
+          "time": 7.7,
+          "x": 736,
+          "y": 663
+        },
+        {
+          "time": 8.1,
+          "x": 736,
+          "y": 553
+        },
+        {
+          "time": 8.55,
+          "x": 737,
+          "y": 455
+        }
+      ]
+    }
+  ],
+  "finale": {
+    "start": 9.65,
+    "title": "NOCTIS",
+    "subtitle": "Chaque détail, choisi avec intention"
+  },
+  "review": {
+    "source": "HDR ProRes - Seedance 2_5 - Create a premium automotive film using the supplied start and end keyfra.mov",
+    "sourceDuration": 10.041667,
+    "sourceFps": 24,
+    "sourceColor": "BT2020 / PQ",
+    "reviewed": "2026-09-27",
+    "notes": "Timing and component anchors reviewed on the delivered film. Paint .75–2.1, carbon2.2–3.6, exploded reveal4.05–5.7, close-ups6.1–8.55, final wide9–10. No animated protection film."
+  }
+}

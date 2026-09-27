@@ -1,0 +1,13 @@
+{
+  "name": "noctis-site",
+  "private": true,
+  "scripts": {
+    "build:icons": "esbuild assets/js/icons.js --bundle --minify --format=iife --outfile=assets/vendor/lucide-icons.min.js"
+  },
+  "dependencies": {
+    "lucide": "1.48.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

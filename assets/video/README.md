@@ -16,3 +16,11 @@ c'est la maquette client avec le texte incrusté retiré.
 
 Tant que les fichiers `*.mp4` sont absents, le site affiche automatiquement les images
 de repli : rien ne casse, aucune erreur visible pour le visiteur.
+
+
+Révision 46 : le site utilise les nouvelles extractions `*-1080p30-20260927-q90`
+pour l’intro et le hero, avec 65 et 240 images. La vidéo atelier utilise
+`atelier-v2-1080p24-20260927`, 241 images, directement issues du ProRes client.
+Toutes les séquences desktop sont en 1920×1080 WebP qualité 90 ; le cache
+de décodage est borné à 18 images par séquence. Le MP4 atelier reste le
+fichier de lecture native mobile en 1080p24.

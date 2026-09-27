@@ -14,4 +14,5 @@ Thumbs.db
 # Python
 __pycache__/
 *.pyc
+node_modules/
 tools/server.*.log

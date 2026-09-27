@@ -9,6 +9,10 @@
 
   var html = document.documentElement;
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var compactExperience = window.matchMedia("(max-width: 1000px), (pointer: coarse)").matches;
+  var simpleExperience = reduceMotion || compactExperience;
+  html.classList.toggle("is-compact", compactExperience);
+  html.classList.toggle("is-simple", simpleExperience);
   var hasGsap = typeof window.gsap !== "undefined";
   var hasScrollTrigger = hasGsap && typeof window.ScrollTrigger !== "undefined";
 
@@ -21,7 +25,7 @@
 
   var lenis = null;
   var lenisEnabled = window.location.search.indexOf("lenis=0") === -1;
-  if (typeof window.Lenis !== "undefined" && !reduceMotion && lenisEnabled) {
+  if (typeof window.Lenis !== "undefined" && !simpleExperience && lenisEnabled) {
     lenis = new window.Lenis({
       lerp: 0.1,
       wheelMultiplier: 1,
@@ -44,22 +48,15 @@
   /* --- Chargement & intro (vidéo 0) ------------------------------------- */
 
   var introDone = false;
+  var introTimeline = null;
 
   /* Révèle le site : l'intro a fini sa course, la page redevient défilable et
      le rush prend le relais sur l'image de raccord (aucun saut de cadrage). */
   function revealPage() {
     if (introDone) return;
     introDone = true;
-    /* La phrase manifeste a fini son rôle dans l'intro : on efface tout ce
-       que GSAP a posé dessus (opacité, flou, transforms). Sans cela, un rendu
-       interrompu (onglet en arrière-plan, image perdue) peut la laisser à
-       l'écran, floue, par-dessus le titre. La séquence du carré la fait
-       revenir plus loin : on efface, on ne masque pas. */
-    if (window.gsap) {
-      window.gsap.set(document.querySelector("[data-manifesto-beat]"), { clearProps: "opacity,visibility,filter,transform" });
-      window.gsap.set(document.querySelectorAll(".hero__statement .word"), { clearProps: "filter,opacity,transform" });
-    }
     html.classList.remove("is-intro", "is-locked");
+    if (simpleExperience) html.classList.remove("gsap-ready");
     if (lenis) lenis.start();
     document.body.classList.add("is-loaded");
     // le rush prend la main sur l'image de raccord, puis l'intro se retire
@@ -98,8 +95,8 @@
   /*  · vidéo 2 (l'atelier) : inchangée, ouverte par le carré.              */
   /* ------------------------------------------------------------------ */
 
-  var INTRO_LAST = 32;      // dernière image de l'intro (33 images)
-  var HERO_START = 19;      // première image du rush après le raccord
+  var INTRO_LAST = 64;      // vidéo 0 : segment natif à 30 images/s
+  var HERO_START = 38;      // même raccord que l’ancienne image 19 à 15 images/s
   var heroSection = document.querySelector("[data-hero]");
   var heroFramesCanvas = heroSection ? heroSection.querySelector("[data-hero-frames]") : null;
   var introFramesCanvas = heroSection ? heroSection.querySelector("[data-intro-frames]") : null;
@@ -108,31 +105,34 @@
   var depthHero = null;
   var heroScrubLive = false;   // le défilement ne pilote la séquence qu'après l'intro
 
-  if (!reduceMotion && (heroFramesCanvas || introFramesCanvas)) {
-    var portrait = window.matchMedia("(max-width: 767px)").matches;
-    if (introFramesCanvas) {
-      // l'intro joue tout de suite : ses 33 images sont chargées dans l'ordre
-      introSequence = initFrameSequence({
-        canvas: introFramesCanvas,
-        base: portrait ? "assets/frames/intro-mobile/" : "assets/frames/intro/",
-        count: INTRO_LAST + 1,
-        cle: "intro",
-        firstRange: INTRO_LAST
-      });
-      if (introSequence) introSequence.load();
-    }
+  // La vidéo 0 est conservée, y compris sur téléphone. Seules ses 65
+  // images sont chargées sur mobile ; le long scrub desktop reste désactivé.
+  var shouldPlayIntro = !reduceMotion && hasGsap && !window.location.hash && window.location.search.indexOf("intro=0") === -1;
+  if (shouldPlayIntro && introFramesCanvas) {
+    introSequence = initFrameSequence({
+      canvas: introFramesCanvas,
+      base: compactExperience ? "assets/frames/intro-mobile-1080p30-20260927-q90/" : "assets/frames/intro-1080p30-20260927-q90/",
+      count: INTRO_LAST + 1,
+      cle: "intro",
+      maxDecoded: 18,
+      maxWidth: compactExperience ? 608 : 1920,
+      firstRange: INTRO_LAST
+    });
+    if (introSequence) introSequence.load();
   }
 
   /* Le rush (vidéo 1) n'entre en scène qu'à la fin de l'intro : on ne charge
      ses images qu'à ce moment-là, pour ne pas doubler la mémoire occupée. */
   function startHeroSequence() {
-    if (heroSequence || !heroFramesCanvas || reduceMotion) return heroSequence;
+    if (heroSequence || !heroFramesCanvas || simpleExperience) return heroSequence;
     var portrait = window.matchMedia("(max-width: 767px)").matches;
     heroSequence = initFrameSequence({
       canvas: heroFramesCanvas,
-      base: portrait ? "assets/frames/hero-mobile/" : "assets/frames/hero/",
-      count: 120,
+      base: portrait ? "assets/frames/hero-mobile-1080p30-20260927-q90/" : "assets/frames/hero-1080p30-20260927-q90/",
+      count: 240,
       cle: "hero",
+      maxDecoded: 18,
+      maxWidth: portrait ? 608 : 1920,
       // l'image de raccord et ses voisines d'abord : le relais est prêt
       firstRange: HERO_START + 8,
       onFirstReady: function () {
@@ -177,42 +177,12 @@
     introSequence.setCamera(introCam);
   }
 
-  /* L'intro joue d'elle-même pendant que la phrase manifeste s'installe,
-     puis elle s'efface AVANT que le titre n'entre : un seul message à la
-     fois, jamais deux textes superposés. */
+  // Vidéo 0 seule : aucune phrase ni jauge devant le plan d'ouverture.
   function playIntro() {
-    var gsap = window.gsap;
-    var beat = document.querySelector("[data-manifesto-beat]");
-    var eyebrow = document.querySelector("[data-intro-eyebrow]");
-    var manifesto = document.querySelector("[data-manifesto]");
-    var bar = document.querySelector("[data-intro-bar]");
-    var barFill = bar ? bar.querySelector("i") : null;
-    var words = manifesto ? splitWords(manifesto) : [];
-
-    gsap.set(beat, { opacity: 0 });
-    gsap.set(eyebrow, { opacity: 0, y: 14 });
-    if (bar) gsap.set(bar, { opacity: 0 });
-    if (barFill) gsap.set(barFill, { scaleX: 0 });
-    gsap.set(words, { opacity: 0, y: 22, filter: "blur(10px)" });
-    // GSAP vient de mesurer chaque mot pour poser son transform : si un blanc
-    // s'est décalé au passage, on refait la découpe avant la chorégraphie.
-    words = repareEspaces(manifesto, words);
-
-    gsap.timeline({ defaults: { ease: "power3.out" }, onComplete: revealPage })
-      // la caméra : travelling avant, et décadrage qui se resserre
+    introTimeline = window.gsap.timeline({ onComplete: revealPage })
       .to(introCam, { frame: INTRO_LAST, duration: 2.35, ease: "power2.inOut", onUpdate: applyIntroCam }, 0)
       .to(introCam, { zoom: 1, panX: 0, panY: 0, duration: 2.6, ease: "power2.out", onUpdate: applyIntroCam }, 0)
-      // le rush commence à charger à mi-intro : son image de raccord est prête
-      // quand l'intro s'arrête
-      .call(function () { startHeroSequence(); }, null, 1.5)
-      // le texte de l'intro
-      .to(beat, { opacity: 1, duration: 0.5 }, 0.1)
-      .to(eyebrow, { opacity: 1, y: 0, duration: 0.5 }, 0.18)
-      .to(words, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.7, stagger: 0.07 }, 0.42)
-      .to(bar, { opacity: 1, duration: 0.3 }, 0.66)
-      .to(barFill, { scaleX: 1, duration: 1.5, ease: "none" }, 0.72)
-      // la phrase sort avant l'arrivée du titre
-      .to(beat, { opacity: 0, duration: 0.45, ease: "power2.inOut" }, 2.15);
+      .call(function () { startHeroSequence(); }, null, 1.5);
   }
 
   // La vidéo 0 joue à chaque arrivée sur le site. Deux exceptions : un lien
@@ -224,11 +194,6 @@
     window.location.search.indexOf("intro=0") === -1
   );
   if (introPlays) {
-    /* La phrase manifeste doit être mesurable pendant que GSAP la met en
-       place : sans cela le navigateur ne peut pas la mesurer, GSAP sort les
-       mots de leur parent pour y arriver, et les espaces se décalent (la
-       phrase s'écrit « lesvéhicules »). `gsap-ready` donne au bloc sa vraie
-       mise en page avant la première mesure. */
     html.classList.add("gsap-ready");
     // l'intro se joue depuis le haut : on empêche le navigateur de restaurer
     // une position de défilement en plein milieu de la séquence
@@ -242,7 +207,7 @@
     }
     playIntro();
   } else {
-    window.setTimeout(revealPage, reduceMotion ? 120 : 250);
+    window.setTimeout(revealPage, 0);
   }
 
   /* --- Panneau de diagnostic : ajouter ?debug=1 à l'URL ---------------- */
@@ -330,7 +295,7 @@
     }
 
     // état de repli (mouvement réduit ou absence de GSAP) : tout visible
-    if (reduceMotion || !hasScrollTrigger) {
+    if (simpleExperience || !hasScrollTrigger) {
       words.forEach(function (word) { word.style.opacity = "1"; });
       return;
     }
@@ -367,7 +332,7 @@
   function initImageReveal(img) {
     var box = img.parentElement;
     if (!box) return;
-    if (reduceMotion || !hasScrollTrigger) {
+    if (simpleExperience || !hasScrollTrigger) {
       img.style.clipPath = "none";
       return;
     }
@@ -400,7 +365,7 @@
 
   function initCraftSequence() {
     var stage = document.querySelector("[data-craft]");
-    if (!stage || reduceMotion || !hasScrollTrigger) return;
+    if (!stage || simpleExperience || !hasScrollTrigger) return;
 
     var steps = Array.prototype.slice.call(stage.querySelectorAll("[data-craft-step]"));
     var frames = Array.prototype.slice.call(stage.querySelectorAll("[data-craft-frame]"));
@@ -441,7 +406,7 @@
   /* ------------------------------------------------------------------ */
 
   function initMouseParallax(target, strength) {
-    if (!target || reduceMotion || !hasGsap) return;
+    if (!target || simpleExperience || !hasGsap) return;
     var qx = window.gsap.quickTo(target, "x", { duration: 0.9, ease: "power3.out" });
     var qy = window.gsap.quickTo(target, "y", { duration: 0.9, ease: "power3.out" });
     window.addEventListener("mousemove", function (event) {
@@ -555,6 +520,10 @@
   var menu = document.querySelector(".menu");
 
   function setMenu(open) {
+    if (menu) menu.inert = !open;
+    document.querySelector(".header__logo").inert = open;
+    document.querySelector("main").inert = open;
+    document.querySelector(".footer").inert = open;
     html.classList.toggle("menu-open", open);
     html.classList.toggle("is-locked", open);
     if (lenis) {
@@ -563,12 +532,17 @@
     }
     navTriggers.forEach(function (btn) {
       btn.setAttribute("aria-expanded", String(open));
+      var label = btn.querySelector(".header__nav-label");
+      if (label) label.textContent = open ? "Fermer" : "Menu";
+      var accessibleLabel = btn.querySelector(".sr-only");
+      if (accessibleLabel) accessibleLabel.textContent = open ? "Fermer le menu" : "Ouvrir le menu";
     });
     if (header) header.classList.remove("is-hidden");
     if (open && menu) {
       var first = menu.querySelector("a");
-      if (first) window.setTimeout(function () { first.focus(); }, 500);
+      if (first) window.setTimeout(function () { if (html.classList.contains("menu-open")) first.focus(); }, 100);
     }
+    if (!open && navTriggers[0]) navTriggers[0].focus({ preventScroll: true });
   }
 
   navTriggers.forEach(function (btn) {
@@ -579,6 +553,13 @@
 
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape" && html.classList.contains("menu-open")) setMenu(false);
+    if (event.key === "Tab" && html.classList.contains("menu-open") && menu) {
+      var links = Array.prototype.slice.call(menu.querySelectorAll("a[href]")).filter(function (link) { return link.getClientRects().length > 0; });
+      var first = navTriggers[0];
+      var last = links[links.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
   });
 
   if (menu) {
@@ -615,11 +596,15 @@
     var suivi = window.__noctisFrames || (window.__noctisFrames = { hero: 0, atelier: 0, total: count });
     suivi.total = count;
 
-    // Le tampon du canvas reste à la taille CSS × 1 : les images sources font
-    // 1280 px de large, un tampon en 2× (écrans Retina) ne coûterait que du
-    // remplissage sans apporter de détail.
-    var dpr = 1;
+    // Respecte les écrans Retina, sans dépasser la largeur des images sources.
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
     var images = new Array(count);
+    var bounded = Boolean(options.maxDecoded && window.createImageBitmap);
+    var blobs = bounded ? new Array(count) : null;
+    var requested = new Uint8Array(count);
+    var decoding = new Uint8Array(count);
+    var decodeJobs = 0;
+    var decodedLimit = options.maxDecoded || count;
     var pretes = new Uint8Array(count);
     var charge = false;
     var dessinee = -1;
@@ -627,7 +612,9 @@
     var premiere = false;
     // séquence libérée (l'intro rend ses images au navigateur après le relais)
     var mort = false;
-    var timers = [];
+    var queue = [];
+    var loading = 0;
+    var concurrency = 6;
     // caméra de l'intro, appliquée dans le dessin (voir peindre/setCamera)
     var camera = { zoom: 1, panX: 0, panY: 0 };
 
@@ -638,10 +625,28 @@
     }
 
     function charger(i) {
-      if (mort || images[i]) return;
+      if (mort || requested[i]) return;
+      requested[i] = 1;
+      loading += 1;
+      if (bounded) {
+        fetch(fichier(i)).then(function (response) {
+          if (!response.ok) throw new Error("Frame " + response.status);
+          return response.blob();
+        }).then(function (blob) {
+          loading -= 1;
+          if (mort) return;
+          blobs[i] = blob;
+          suivi[cle] = (suivi[cle] || 0) + 1;
+          decodeNearby();
+          pump();
+        }).catch(function () { loading -= 1; pump(); });
+        return;
+      }
       var img = new Image();
       img.decoding = "async";
-      img.onload = function () {
+      function ready() {
+        loading -= 1;
+        if (mort) return;
         pretes[i] = 1;
         suivi[cle] = (suivi[cle] || 0) + 1;
         if (!premiere) {
@@ -649,11 +654,86 @@
           canvas.classList.add("is-ready");
           if (typeof options.onFirstReady === "function") options.onFirstReady();
         }
-        if (i === cible || dessinee < 0) peindre(i);
+        var nearest = plusProche(cible);
+        if (nearest >= 0 && nearest !== dessinee) peindre(nearest);
+        pump();
+      }
+      function failed() { loading -= 1; pretes[i] = 0; pump(); }
+      img.onload = function () {
+        // Download completion does not mean the WebP is decoded. Decode off
+        // the drawing path so a scroll update never pays that cost.
+        if (img.decode) img.decode().then(ready, failed);
+        else ready();
       };
-      img.onerror = function () { pretes[i] = 0; };
+      img.onerror = failed;
       images[i] = img;
       img.src = fichier(i);
+    }
+
+    function pump() {
+      while (!mort && loading < concurrency && queue.length) {
+        var i = queue.shift();
+        if (!requested[i]) charger(i);
+      }
+    }
+
+    // Full-HD frames stay compressed outside a small seek window. Keeping
+    // 241 decoded 1080p frames would consume almost 2 GB for this film alone.
+    function decodeNearby() {
+      if (!bounded || mort) return;
+      var radius = Math.floor((decodedLimit - 1) / 2);
+      var candidates = [];
+      for (var distance = 0; distance <= radius; distance += 1) {
+        [cible + distance, cible - distance].forEach(function (i) {
+          if (i >= 0 && i < count && blobs[i] && !images[i] && !decoding[i] && candidates.indexOf(i) === -1) candidates.push(i);
+        });
+      }
+      while (decodeJobs < 2 && candidates.length) {
+        (function (i) {
+          decoding[i] = 1;
+          decodeJobs += 1;
+          createImageBitmap(blobs[i]).then(function (bitmap) {
+            decoding[i] = 0;
+            decodeJobs -= 1;
+            if (mort || Math.abs(i - cible) > radius + 1) bitmap.close();
+            else {
+              images[i] = bitmap;
+              pretes[i] = 1;
+              if (!premiere) {
+                premiere = true;
+                canvas.classList.add("is-ready");
+                if (typeof options.onFirstReady === "function") options.onFirstReady();
+              }
+              var cached = [];
+              for (var n = 0; n < count; n += 1) if (images[n]) cached.push(n);
+              cached.sort(function (a, b) { return Math.abs(b - cible) - Math.abs(a - cible); });
+              while (cached.length > decodedLimit) {
+                var old = cached.shift();
+                images[old].close();
+                images[old] = null;
+                pretes[old] = 0;
+              }
+              suivi[cle + "Decoded"] = cached.length;
+              var nearest = plusProche(cible);
+              if (nearest >= 0 && nearest !== dessinee) peindre(nearest);
+            }
+            decodeNearby();
+          }, function () { decoding[i] = 0; decodeJobs -= 1; blobs[i] = null; decodeNearby(); });
+        })(candidates.shift());
+      }
+    }
+
+    function prioritize(index) {
+      if (!charge || mort || pretes[index]) return;
+      var nearby = [];
+      for (var distance = 0; distance <= 3; distance += 1) {
+        [index + distance, index - distance].forEach(function (i) {
+          if (i >= 0 && i < count && !requested[i] && nearby.indexOf(i) === -1) nearby.push(i);
+        });
+      }
+      queue = nearby.concat(queue.filter(function (i) { return nearby.indexOf(i) === -1; }));
+      pump();
+      decodeNearby();
     }
 
     // On commence par une trame large (une image sur huit) pour que la
@@ -670,17 +750,18 @@
       }
       for (i = 0; i < count; i += 8) ordre.push(i);
       for (i = 0; i < count; i += 1) if (i % 8 !== 0 && ordre.indexOf(i) === -1) ordre.push(i);
-      ordre.forEach(function (n, rang) {
-        timers.push(window.setTimeout(function () { charger(n); }, rang * 14));
-      });
+      queue = ordre;
+      prioritize(cible);
+      pump();
     }
 
     function resize() {
       if (mort) return;
       var largeur = canvas.clientWidth || window.innerWidth;
       var hauteur = canvas.clientHeight || window.innerHeight;
-      canvas.width = Math.round(largeur * dpr);
-      canvas.height = Math.round(hauteur * dpr);
+      var scale = Math.min(dpr, (options.maxWidth || 1280) / largeur);
+      canvas.width = Math.round(largeur * scale);
+      canvas.height = Math.round(hauteur * scale);
       if (dessinee >= 0) peindre(dessinee);
     }
 
@@ -690,8 +771,8 @@
       if (!img || !pretes[i]) return;
       var cw = canvas.width;
       var ch = canvas.height;
-      var iw = img.naturalWidth;
-      var ih = img.naturalHeight;
+      var iw = img.naturalWidth || img.width;
+      var ih = img.naturalHeight || img.height;
       if (!cw || !ch || !iw || !ih) return;
       // même cadrage qu'un object-fit: cover, caméra comprise : l'intro
       // (vidéo 0) avance la caméra dans le même dessin, sans toucher au DOM
@@ -709,6 +790,7 @@
       ctx.drawImage(img, (cw - w) / 2 - dx, (ch - h) / 2 - dy, w, h);
       dessinee = i;
       suivi[cle + "Index"] = i;
+      if (typeof options.onFrame === "function") options.onFrame(i);
     }
 
     function plusProche(i) {
@@ -724,9 +806,11 @@
     function setIndex(i) {
       if (mort) return;
       cible = i < 0 ? 0 : i > count - 1 ? count - 1 : Math.round(i);
+      if (bounded) decodeNearby();
       if (cible === dessinee) return;
+      prioritize(cible);
       var proche = plusProche(cible);
-      if (proche >= 0) peindre(proche);
+      if (proche >= 0 && proche !== dessinee) peindre(proche);
     }
 
     // p = progression 0 → 1 de la séquence
@@ -755,15 +839,18 @@
     function dispose() {
       if (mort) return;
       mort = true;
-      timers.forEach(function (t) { window.clearTimeout(t); });
-      timers.length = 0;
+      suivi[cle + "Decoded"] = 0;
+      queue.length = 0;
+      window.removeEventListener("resize", resize);
       for (var i = 0; i < count; i += 1) {
         if (images[i]) {
+          if (bounded) images[i].close();
           images[i].onload = null;
           images[i].onerror = null;
           images[i] = null;
           pretes[i] = 0;
         }
+        if (blobs) blobs[i] = null;
       }
     }
 
@@ -800,7 +887,31 @@
     var frame = section.querySelector("[data-reveal-frame]");
     var framesCanvas = section.querySelector("[data-reveal-frames]");
     var texture = section.querySelector("[data-reveal-texture]");
-    var cues = Array.prototype.slice.call(frame.querySelectorAll(".reveal__cue"));
+    var cues = Array.prototype.slice.call(frame.querySelectorAll(".reveal__cue, [data-component-label]"));
+    var frameFps = Number(frame.dataset.frameFps) || 12;
+    if (!Number.isFinite(frameFps) || frameFps <= 0) frameFps = 12;
+    // Parse annotations once; the scroll loop only interpolates their coordinates.
+    var cueData = cues.map(function (cue) {
+      var range = (cue.getAttribute("data-cue") || "0,-1").split(",").map(Number);
+      var track = [];
+      if (cue.dataset.anchorTrack) {
+        try {
+          var parsed = JSON.parse(cue.dataset.anchorTrack);
+          if (Array.isArray(parsed)) {
+            track = parsed.filter(function (point) {
+              return point && Number.isFinite(point.time) && Number.isFinite(point.x) && Number.isFinite(point.y);
+            }).sort(function (a, b) { return a.time - b.time; });
+          }
+        } catch (_) { /* Older two-point annotations remain a valid fallback. */ }
+      }
+      return {
+        element: cue, start: range[0], end: range[1], track: track,
+        from: (cue.dataset.anchorFrom || "0,0").split(",").map(Number),
+        to: (cue.dataset.anchorTo || cue.dataset.anchorFrom || "0,0").split(",").map(Number),
+        label: (cue.dataset.label || "0,0").split(",").map(Number),
+        circle: cue.querySelector("circle"), path: cue.querySelector("path")
+      };
+    });
     var scrim = frame.querySelector("[data-reveal-scrim]");
     var finale = frame.querySelector("[data-reveal-finale]");
     // Le beat manifeste est le seul texte de la séquence : il revient seul sur
@@ -815,9 +926,12 @@
     // avec l'ouverture, et repartent en arrière quand il se referme.
     var frames = framesCanvas ? initFrameSequence({
       canvas: framesCanvas,
-      base: "assets/frames/atelier/",
-      count: 120,
-      cle: "atelier"
+      base: frame.dataset.frameBase || "assets/frames/atelier/",
+      count: Number(frame.dataset.frameCount) || 120,
+      cle: "atelier",
+      maxDecoded: 18,
+      maxWidth: 1920,
+      onFrame: function (index) { updateCues(index); }
     }) : null;
 
     // Le fondu du fond texture se mesure en « écrans » parcourus depuis le
@@ -825,22 +939,17 @@
     // vidéo 1 reste donc affichée pendant tout le rush, puis se dissout
     // lentement dans le fond texture (presque un écran de défilement).
     var DISSOLVE_FROM = 0.96;
-    var DISSOLVE_TO = 1.78;
+    var DISSOLVE_TO = 1.6;
 
     // La séquence du carré se mesure en progression 0 → 1 après le rush :
     // la phrase reste seule tant qu'on ne continue pas à défiler, puis un
     // carré minuscule apparaît et grandit jusqu'au plein écran.
-    var SQUARE_IN = 0.24;
-    var SQUARE_SEEN = 0.34;
-    var OPEN_START = 0.38;
-    var OPEN_END = 0.7;
+    var SQUARE_IN = 0.08;
+    var SQUARE_SEEN = 0.14;
+    var OPEN_START = 0.16;
+    var OPEN_END = 0.36;
     // une fois l'écran entièrement rempli, la séquence reste ouverte
     var FULL_AT = OPEN_END - 0.01;
-
-    // Immobile, le carré se referme tout seul (et rejoue à la prochaine
-    // poussée) — sauf une fois l'écran entièrement rempli.
-    var IDLE_AFTER = 800;
-    var IDLE_TAU = 700;
 
     var size = { w: 0, h: 0 };
     // position absolue du haut du hero : évite tout getBoundingClientRect
@@ -854,9 +963,44 @@
     var lastOpacity = "";
     var lastTexture = "";
     var lastBeat = "";
-    var lastY = window.pageYOffset;
-    var lastMove = window.performance.now();
-    var lastFrame = lastMove;
+    var travel = 1;
+    var lastCueIndex = -2;
+    var lastCuePlaying = false;
+
+    function interpolateAnchorTrack(track, time) {
+      if (time <= track[0].time) return track[0];
+      for (var i = 1; i < track.length; i++) {
+        if (time <= track[i].time) {
+          var from = track[i - 1];
+          var to = track[i];
+          var fraction = (time - from.time) / Math.max(0.000001, to.time - from.time);
+          return { x: from.x + (to.x - from.x) * fraction, y: from.y + (to.y - from.y) * fraction };
+        }
+      }
+      return track[track.length - 1];
+    }
+
+    function updateCues(index) {
+      var playing = current >= FULL_AT + 0.005;
+      if (index === lastCueIndex && playing === lastCuePlaying) return;
+      lastCueIndex = index;
+      lastCuePlaying = playing;
+      cueData.forEach(function (data) {
+        var cue = data.element;
+        var visible = playing && index >= data.start && index <= data.end;
+        cue.classList.toggle("is-active", visible);
+        if (visible && cue.hasAttribute("data-component-label") && data.circle && data.path) {
+          var fraction = (index - data.start) / Math.max(1, data.end - data.start);
+          var anchor = data.track.length ? interpolateAnchorTrack(data.track, index / frameFps) : {
+            x: data.from[0] + (data.to[0] - data.from[0]) * fraction,
+            y: data.from[1] + (data.to[1] - data.from[1]) * fraction
+          };
+          data.circle.setAttribute("cx", anchor.x);
+          data.circle.setAttribute("cy", anchor.y);
+          data.path.setAttribute("d", "M" + (data.label[0] + 260) + " " + (data.label[1] + 14) + " H" + (anchor.x - 65) + " L" + anchor.x + " " + anchor.y);
+        }
+      });
+    }
 
     function clamp(value, min, max) {
       return value < min ? min : value > max ? max : value;
@@ -886,14 +1030,14 @@
 
     // course de la séquence du carré, en pixels
     function revealTravel() {
-      var screen = size.h || window.innerHeight || 1;
-      return Math.max(1, section.offsetHeight - sticky.offsetHeight - screen);
+      return travel;
     }
 
     function measure() {
       size.w = sticky.clientWidth || window.innerWidth;
       size.h = sticky.clientHeight || window.innerHeight;
       origin = section.getBoundingClientRect().top + window.pageYOffset;
+      travel = Math.max(1, section.offsetHeight - sticky.offsetHeight - size.h);
     }
 
     function apply(value, position) {
@@ -959,19 +1103,10 @@
         frames.setProgress(ramp(value, FULL_AT, 1));
 
         // textes flottants calés sur les gestes (indice d'image courante)
-        var joue = value >= FULL_AT + 0.005;
-        var image = frames.currentIndex();
-        cues.forEach(function (cue) {
-          var bornes = (cue.getAttribute("data-cue") || "0,0").split(",");
-          var actif = joue && image >= Number(bornes[0]) && image <= Number(bornes[1]);
-          if (cue._actif !== actif) {
-            cue._actif = actif;
-            cue.classList.toggle("is-active", actif);
-          }
-        });
+        updateCues(frames.currentIndex());
 
         // fin de la vidéo 2 : scrim + mot de clôture (transition de sortie)
-        var fin = value >= 0.93;
+        var fin = ramp(value, FULL_AT, 1) >= Number(frame.dataset.finaleAt || 0.87);
         if (scrim && scrim._fin !== fin) {
           scrim._fin = fin;
           scrim.classList.toggle("is-active", fin);
@@ -985,52 +1120,45 @@
 
     function loop(now) {
       raf = 0;
+      if (simpleExperience) { if (frames) frames.dispose(); return; }
       now = now || window.performance.now();
       var position = readPosition();
       var target = readProgress();
 
-      // le défilement pousse le carré ; à l'arrêt, il se referme tout seul
-      var y = window.pageYOffset;
-      if (Math.abs(y - lastY) > 0.4) {
-        lastY = y;
-        lastMove = now;
-      }
-
-      // Les images de la vidéo 2 commencent à se charger dès le milieu du
-      // rush : elles sont prêtes (et déjà décodées) quand le fondu démarre.
       if (position > 0.5 && frames) frames.load();
-
-      if (now - lastMove < IDLE_AFTER || current >= FULL_AT) {
-        // léger lissage : la fenêtre suit le défilement sans à-coups
-        current += (target - current) * 0.18;
-        if (Math.abs(target - current) < 0.0008) current = target;
-      } else if (current > 0) {
-        current -= current * Math.min(1, (now - lastFrame) / IDLE_TAU);
-        if (current < 0.001) current = 0;
-      }
-      lastFrame = now;
+      // Lenis already smooths the scroll signal used by video 1. Applying
+      // another interpolation here makes video 2 trail behind the wheel.
+      current = target;
 
       // le fond texture suit le défilement (pas la valeur élastique du carré)
       apply(current, position);
 
-      // on ne continue à tourner que tant que quelque chose peut bouger
-      if (active && (current > 0 || position < DISSOLVE_TO)) raf = window.requestAnimationFrame(loop);
     }
 
     function start() {
-      if (!raf) raf = window.requestAnimationFrame(loop);
+      if (!simpleExperience && !raf) raf = window.requestAnimationFrame(loop);
     }
-
-    // le défilement relance la boucle (elle s'arrête dès que tout est stable)
-    window.addEventListener("scroll", function () {
-      lastMove = window.performance.now();
-      if (active) start();
-    }, { passive: true });
 
     measure();
     current = readProgress();
     apply(current, readPosition());
     window.__noctisReveal = function () { return current; };
+
+    // Use the same synchronous scroll signal as the hero sequence. A
+    // requestAnimationFrame fallback remains for the script without GSAP.
+    if (hasScrollTrigger) {
+      window.gsap.registerPlugin(window.ScrollTrigger);
+      window.ScrollTrigger.create({
+        trigger: section,
+        start: "top top",
+        end: function () { return "+=" + (travel + size.h); },
+        onRefreshInit: measure,
+        onRefresh: loop,
+        onUpdate: loop
+      });
+    } else {
+      window.addEventListener("scroll", function () { if (active) start(); }, { passive: true });
+    }
 
     window.addEventListener("resize", function () {
       measure();
@@ -1054,7 +1182,7 @@
   var revealSection = document.querySelector("[data-reveal]");
   // ?reveal=0 : coupe la séquence (utile pour comparer la fluidité du rush)
   var revealEnabled = window.location.search.indexOf("reveal=0") === -1;
-  if (revealSection && !reduceMotion && revealEnabled) initRevealSequence(revealSection);
+  if (revealSection && !simpleExperience && revealEnabled) initRevealSequence(revealSection);
 
   /* ------------------------------------------------------------------
      Rush 2.5D : la caméra fonce vers la voiture centrale
@@ -1204,6 +1332,7 @@
     }
 
     function render(time) {
+      if (simpleExperience) return;
       if (state.enabled && state.ready && !state.disabled) {
         state.current += (state.progress - state.current) * 0.09;
         var eased = Math.pow(Math.max(state.current, 0), 1.5);
@@ -1257,7 +1386,30 @@
 
   /* --- Animations GSAP -------------------------------------------------- */
 
-  if (!hasGsap || !hasScrollTrigger || reduceMotion) {
+  // Changing viewport or motion preferences must never leave pinned content
+  // hidden. Once simplified, keep native scrolling for this page visit.
+  function simplifyExperience() {
+    if (simpleExperience) return;
+    simpleExperience = true;
+    html.classList.add("is-simple", "is-compact");
+    if (introTimeline) introTimeline.kill();
+    if (heroSequence) heroSequence.dispose();
+    if (introSequence) introSequence.dispose();
+    if (depthHero) depthHero.disable();
+    if (lenis) { lenis.destroy(); window.__noctisLenis = null; }
+    if (hasScrollTrigger) window.ScrollTrigger.getAll().forEach(function (trigger) { trigger.kill(true); });
+    if (hasGsap) {
+      window.gsap.killTweensOf("main, main *");
+      window.gsap.set("main, main *", { clearProps: "transform,opacity,visibility,filter,clipPath" });
+    }
+    html.classList.remove("gsap-ready");
+    document.querySelectorAll("[data-count]").forEach(function (el) { el.textContent = el.dataset.count; });
+    revealPage();
+  }
+  window.matchMedia("(max-width: 1000px), (pointer: coarse)").addEventListener("change", function (event) { if (event.matches) simplifyExperience(); });
+  window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", function (event) { if (event.matches) simplifyExperience(); });
+
+  if (!hasGsap || !hasScrollTrigger || simpleExperience) {
     document.querySelectorAll(".hero__statement").forEach(splitWords);
     return;
   }
@@ -1281,7 +1433,6 @@
   if (hero) {
     var titleBlock = hero.querySelector(".hero__title-block");
     var title = hero.querySelector(".hero__title");
-    var foot = hero.querySelector(".hero__foot");
     var media = hero.querySelector(".hero__media");
     var veil = hero.querySelector(".hero__veil");
 
@@ -1305,18 +1456,7 @@
 
     if (veil) gsap.set(veil, { opacity: 0 });
 
-    // arrivée sur le site : elle se joue quand l'intro se termine, pour que
-    // le fondu du préloader s'enchaîne avec l'apparition du titre
-    var arrival = gsap
-      .timeline({ defaults: { ease: "power3.out" }, paused: true })
-      .from(title, { yPercent: 14, opacity: 0, duration: 1.05 })
-      .from(foot, { y: 20, opacity: 0, duration: 1 }, "-=0.8");
-    if (document.body.classList.contains("is-loaded")) {
-      arrival.play();
-    } else {
-      document.addEventListener("noctis:reveal", function () { arrival.play(); }, { once: true });
-    }
-
+    // Le titre est lisible immédiatement ; le mouvement commence au scroll.
     // séquence pilotée par le défilement
     var heroTl = gsap.timeline({
       scrollTrigger: {
@@ -1331,7 +1471,7 @@
     });
 
     heroTl
-      .to([titleBlock, foot], { opacity: 0, y: -30, duration: 0.2, ease: "none" }, 0)
+      .to(titleBlock, { opacity: 0, y: -30, duration: 0.2, ease: "none" }, 0)
       .to(veil, { opacity: 1, duration: 0.35, ease: "none" }, 0.7);
 
     if (media) {
@@ -1463,42 +1603,8 @@
       });
     });
 
-    gsap.utils.toArray(".panel").forEach(function (panel, index, list) {
-      if (index === list.length - 1) return;
-      gsap.to(panel, {
-        scale: 0.94,
-        opacity: 0.45,
-        ease: "none",
-        scrollTrigger: {
-          trigger: list[index + 1],
-          start: "top bottom",
-          end: "top top",
-          scrub: true
-        }
-      });
-    });
 
-    /* Rail horizontal (L'ordinaire s'arrête ici) */
-    var rail = document.querySelector(".rail");
-    var railSticky = document.querySelector(".rail-sticky");
-    if (rail && railSticky && window.matchMedia("(min-width: 1024px)").matches) {
-      var distance = function () {
-        return Math.max(0, rail.scrollWidth - window.innerWidth + 64);
-      };
-      gsap.to(rail, {
-        x: function () { return -distance(); },
-        ease: "none",
-        scrollTrigger: {
-          trigger: railSticky,
-          start: "top top",
-          end: function () { return "+=" + distance(); },
-          scrub: 0.8,
-          pin: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true
-        }
-      });
-    }
+
   }
 
   /* Les images de fond suivent un léger zoom au chargement */

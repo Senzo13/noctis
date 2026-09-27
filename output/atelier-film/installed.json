@@ -1,0 +1,13 @@
+{
+  "video": "assets/video/atelier-v2-20260927-063945-2f0e2c.mp4",
+  "frames": "assets/frames/atelier-v2-1080p24-20260927/",
+  "duration": 10.041667,
+  "videoFps": 24,
+  "scrollFps": 24,
+  "frameCount": 241,
+  "color": "SDR BT709, tone-mapped from PQ BT2020",
+  "sourceFilename": "HDR ProRes - Seedance 2_5 - Create a premium automotive film using the supplied start and end keyfra.mov",
+  "frameWidth": 1920,
+  "frameHeight": 1080,
+  "frameQuality": 90
+}
